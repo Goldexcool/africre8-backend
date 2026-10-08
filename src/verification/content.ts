@@ -65,7 +65,8 @@ export async function fetchMetadata(url: string): Promise<PostMetadata> {
       platform,
       url,
       id: j.id,
-      handle: j.uploader_id ?? j.channel_handle ?? j.uploader,
+      // TikTok: uploader = @username (uploader_id is numeric). YouTube: uploader_id = @handle.
+      handle: platform === 'tiktok' ? (j.uploader ?? j.uploader_id) : (j.uploader_id ?? j.channel_handle ?? j.uploader),
       author: j.uploader ?? j.channel,
       caption: [j.title, j.description].filter(Boolean).join('\n'),
       tags: j.tags ?? [],
