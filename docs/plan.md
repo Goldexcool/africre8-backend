@@ -6,14 +6,13 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 4: Profiles + uploads + seed** (2026-10-08)
-- Endpoints: `PUT /profiles/creator|brand|payout-destination`, `GET /creators/:id`, `GET /brands/:id`.
-- Creator responses use `toCreatorCard()` (`src/profiles/creator.mapper.ts`), which matches the mobile `Creator` type. Budgets are in NGN.
-- Onboarding is stamped automatically once the profile basics and one social exist.
-- `POST /uploads/sign` returns a signed direct-to-Cloudinary upload. It answers 503 until `CLOUDINARY_URL` is set.
-- Schema: lowercase `Platform` (matches mobile) and an `Availability` enum.
-- Seed (`npx prisma db seed`, idempotent): 30 creators from the mobile fixtures, 3 brands, admin. Demo logins match the mobile `dev-credentials.ts`. The admin password is in `.env` as `SEED_ADMIN_PASSWORD`.
-- Verified: `test/profiles.e2e-spec.ts` (demo login → card, role 403, onboarding stamp, NUBAN validation).
+**Task 5: Discovery + matching** (2026-10-08)
+- `GET /discover` (brand + onboarded). Filters: category, location, platform, follower range, engagement, budget, credibility, availability. It excludes creators already swiped and creators marked booked, and returns the PRD empty-state message.
+- `POST /swipes`: LIKE creates one `Interest` per brand+creator (7-day expiry) and notifies the creator; PASS hides the creator. `DELETE /swipes/:creatorId` undoes the swipe while the interest is still pending.
+- `GET /interests` (creator inbox / brand sent). `POST /interests/:id/respond` (creator): accepting creates a unique `Match` plus a `Conversation` with a system message, in one transaction.
+- `GET /matches`; `GET|POST /conversations/:id/messages` are members-only.
+- `NotificationsService` writes DB rows and pushes through a pluggable emitter, which the socket gateway will register in task 6. `GET /notifications`, `POST /notifications/:id/read`.
+- Verified: `test/matching.e2e-spec.ts` (duplicate-interest guard, discovery exclusion, 409 on double accept/undo after answer, 403 for non-member chat). `test/helpers.ts` cleans up test users.
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
@@ -23,7 +22,7 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 2. Dockerfile (api + worker from one image) + docker-compose (nginx → api, worker, redis). Check: `docker compose up`, `curl localhost/health` via nginx.
 - [x] 3. Auth: register/login, access JWT (15m) + rotating refresh tokens (hashed, family reuse detection), logout, RolesGuard, onboarding guard. Check: e2e covers rotation + reuse revoking the family.
 - [x] 4. Profiles (creator/brand/socials/payout destination), Cloudinary signed upload, seed (30 creators, 3 brands, 1 admin).
-- [ ] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
+- [x] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
 - [ ] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
 - [ ] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
 - [ ] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.

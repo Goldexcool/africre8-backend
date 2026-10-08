@@ -5,11 +5,14 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ProfilesModule } from './profiles/profiles.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
+import { DiscoveryModule } from './discovery/discovery.module.js';
+import { MatchingModule } from './matching/matching.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule],
   controllers: [HealthController, UploadsController],
 })
 export class AppModule {}
