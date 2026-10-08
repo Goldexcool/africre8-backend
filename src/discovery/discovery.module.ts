@@ -22,10 +22,23 @@ const filtersSchema = z.object({
   minCredibility: num,
   availability: z.enum(['available', 'busy', 'booked']).optional(),
   limit: z.coerce.number().min(1).max(50).default(20),
+  /** The brief the brand is hiring for; swipes and invites are recorded against it. */
+  opportunityId: z.string().uuid().optional(),
 });
 type Filters = z.infer<typeof filtersSchema>;
 
-const swipeSchema = z.object({ creatorId: z.string().uuid(), direction: z.enum(['LIKE', 'PASS']) });
+const swipeSchema = z.object({
+  creatorId: z.string().uuid(),
+  direction: z.enum(['LIKE', 'PASS']),
+  opportunityId: z.string().uuid().optional(),
+  message: z.string().trim().max(1000).optional(),
+});
+const bulkSchema = z.object({
+  creatorIds: z.array(z.string().uuid()).min(1).max(50),
+  opportunityId: z.string().uuid().optional(),
+  message: z.string().trim().min(1).max(1000),
+});
+const scope = (opportunityId?: string) => opportunityId ?? 'general';
 
 @Injectable()
 export class DiscoveryService {
@@ -35,7 +48,7 @@ export class DiscoveryService {
   ) {}
 
   async discover(brandId: string, f: Filters) {
-    const swiped = await this.prisma.swipe.findMany({ where: { brandId }, select: { creatorId: true } });
+    const swiped = await this.prisma.swipe.findMany({ where: { brandId, scopeKey: scope(f.opportunityId) }, select: { creatorId: true } });
     const socialFilter: Prisma.SocialAccountWhereInput = {
       ...(f.platform && { platform: f.platform }),
       ...((f.minFollowers !== undefined || f.maxFollowers !== undefined) && {
@@ -46,7 +59,7 @@ export class DiscoveryService {
     const rows = await this.prisma.creatorProfile.findMany({
       where: {
         userId: { notIn: swiped.map((s) => s.creatorId) },
-        user: { status: 'ACTIVE', onboardedAt: { not: null } },
+        user: { status: 'ACTIVE', onboardedAt: { not: null }, openToInvites: true },
         // Booked creators are not offered for new campaigns unless explicitly asked for.
         availability: f.availability ?? { not: 'booked' },
         ...(f.category && { category: f.category }),
@@ -66,43 +79,67 @@ export class DiscoveryService {
   }
 
   /** A right swipe only records interest: no campaign, contract or payment (PRD 3.2). */
-  async swipe(brandId: string, creatorId: string, direction: 'LIKE' | 'PASS') {
+  async swipe(brandId: string, creatorId: string, direction: 'LIKE' | 'PASS', opportunityId?: string, message?: string) {
     const creator = await this.prisma.creatorProfile.findUnique({ where: { userId: creatorId } });
     if (!creator) throw new NotFoundException('Creator not found');
+    const opp = opportunityId ? await this.ownedOpportunity(brandId, opportunityId) : null;
+    const scopeKey = scope(opportunityId);
     await this.prisma.swipe.upsert({
-      where: { brandId_creatorId: { brandId, creatorId } },
-      create: { brandId, creatorId, direction },
+      where: { brandId_creatorId_scopeKey: { brandId, creatorId, scopeKey } },
+      create: { brandId, creatorId, direction, scopeKey },
       update: { direction },
     });
     if (direction === 'PASS') return { interest: null };
 
-    const existing = await this.prisma.interest.findUnique({ where: { brandId_creatorId: { brandId, creatorId } } });
+    const key = { brandId_creatorId_scopeKey: { brandId, creatorId, scopeKey } };
+    const existing = await this.prisma.interest.findUnique({ where: key });
     if (existing && existing.status !== 'EXPIRED') return { interest: existing };
     const expiresAt = new Date(Date.now() + INTEREST_TTL_DAYS * 864e5);
     const interest = await this.prisma.interest.upsert({
-      where: { brandId_creatorId: { brandId, creatorId } },
-      create: { brandId, creatorId, senderId: brandId, expiresAt },
-      update: { status: 'PENDING', expiresAt },
+      where: key,
+      create: { brandId, creatorId, senderId: brandId, expiresAt, opportunityId, scopeKey, message },
+      update: { status: 'PENDING', expiresAt, message },
     });
     const brand = await this.prisma.brandProfile.findUnique({ where: { userId: brandId } });
     await this.notifications.notify(creatorId, {
       kind: 'interest',
-      title: 'A brand is interested',
-      body: `${brand?.businessName ?? 'A brand'} wants to work with you.`,
+      title: opp ? `Invitation: ${opp.title}` : 'New invitation',
+      body: message ? `${brand?.businessName ?? 'A brand'}: ${message.slice(0, 120)}` : `${brand?.businessName ?? 'A brand'} invited you to work together.`,
       linkTo: `/likes`,
     });
     return { interest };
   }
 
+  /** Stack send: invite many creators to one brief with one message. Already-invited creators are skipped. */
+  async bulk(brandId: string, creatorIds: string[], message: string, opportunityId?: string) {
+    const results: { creatorId: string; interestId?: string; error?: string }[] = [];
+    for (const creatorId of new Set(creatorIds)) {
+      try {
+        const { interest } = await this.swipe(brandId, creatorId, 'LIKE', opportunityId, message);
+        results.push({ creatorId, interestId: interest?.id });
+      } catch (e) {
+        results.push({ creatorId, error: (e as Error).message });
+      }
+    }
+    return { sent: results.filter((r) => r.interestId).length, results };
+  }
+
   /** Undo is only possible while the creator has not answered. */
-  async undo(brandId: string, creatorId: string) {
-    const key = { brandId_creatorId: { brandId, creatorId } };
-    const interest = await this.prisma.interest.findUnique({ where: key });
+  async undo(brandId: string, creatorId: string, opportunityId?: string) {
+    const scopeKey = scope(opportunityId);
+    const interest = await this.prisma.interest.findUnique({ where: { brandId_creatorId_scopeKey: { brandId, creatorId, scopeKey } } });
     if (interest && interest.status !== 'PENDING') throw new ConflictException('Creator already responded');
     await this.prisma.$transaction([
-      this.prisma.interest.deleteMany({ where: { brandId, creatorId } }),
-      this.prisma.swipe.deleteMany({ where: { brandId, creatorId } }),
+      this.prisma.interest.deleteMany({ where: { brandId, creatorId, scopeKey } }),
+      this.prisma.swipe.deleteMany({ where: { brandId, creatorId, scopeKey } }),
     ]);
+  }
+
+  private async ownedOpportunity(brandId: string, id: string) {
+    const opp = await this.prisma.opportunity.findUnique({ where: { id } });
+    if (!opp || opp.brandId !== brandId) throw new NotFoundException('Campaign brief not found');
+    if (opp.status === 'CLOSED') throw new ConflictException('This campaign brief is closed');
+    return opp;
   }
 }
 
@@ -120,14 +157,20 @@ class DiscoveryController {
   @Roles('BRAND')
   @Post('swipes')
   swipe(@CurrentUser() u: AuthUser, @Body(new ZodPipe(swipeSchema)) b: z.infer<typeof swipeSchema>) {
-    return this.discovery.swipe(u.id, b.creatorId, b.direction);
+    return this.discovery.swipe(u.id, b.creatorId, b.direction, b.opportunityId, b.message);
+  }
+
+  @Roles('BRAND')
+  @Post('interests/bulk')
+  bulk(@CurrentUser() u: AuthUser, @Body(new ZodPipe(bulkSchema)) b: z.infer<typeof bulkSchema>) {
+    return this.discovery.bulk(u.id, b.creatorIds, b.message, b.opportunityId);
   }
 
   @Roles('BRAND')
   @HttpCode(204)
   @Delete('swipes/:creatorId')
-  undo(@CurrentUser() u: AuthUser, @Param('creatorId', ParseUUIDPipe) creatorId: string) {
-    return this.discovery.undo(u.id, creatorId);
+  undo(@CurrentUser() u: AuthUser, @Param('creatorId', ParseUUIDPipe) creatorId: string, @Query('opportunityId') opportunityId?: string) {
+    return this.discovery.undo(u.id, creatorId, opportunityId);
   }
 }
 

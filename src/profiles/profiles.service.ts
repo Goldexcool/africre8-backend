@@ -7,7 +7,8 @@ import type { BrandInput, CreatorInput, PayoutInput } from './profiles.schemas.j
 export class ProfilesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async upsertCreator(userId: string, { socials, ...input }: CreatorInput) {
+  async upsertCreator(userId: string, { socials, openToInvites, ...input }: CreatorInput) {
+    if (openToInvites !== undefined) await this.prisma.user.update({ where: { id: userId }, data: { openToInvites } });
     const data = {
       ...input,
       priceFromKobo: input.priceFromNgn !== undefined ? Math.round(input.priceFromNgn * 100) : undefined,

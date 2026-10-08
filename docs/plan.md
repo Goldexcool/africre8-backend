@@ -53,3 +53,8 @@ npm i
 npx prisma migrate deploy
 npm run start:dev
 ```
+
+## Additions (2026-10-08, mobile redesign)
+- [x] 13. Campaign briefs (`Opportunity`): PUBLIC (listed to creators, `applicationLimit` cap) / PRIVATE (invite-only), DRAFT/PUBLISHED/CLOSED. `POST/PUT /opportunities`, `/opportunities/mine` (counts + slots left), `/opportunities/feed` (creator), `/opportunities/:id/apply`, publish/close.
+- [x] 14. Interests and swipes scoped per brief (`scopeKey`); an invite/application carries `opportunityId` + `message`. `POST /interests/bulk` (stack send). `/interests/:id/respond` answered by the receiver (creator for invitations, brand for applications). Accepting creates or reuses the connection, records the brief, and posts the note as the first message.
+- [x] 15. Inbox data: `/matches` returns the brief, latest campaign stage, last message and unread count; `POST /conversations/:id/read`. Creators' `openToInvites` hides them from Discover. Verified: `test/opportunities.e2e-spec.ts`, 19/19 e2e.

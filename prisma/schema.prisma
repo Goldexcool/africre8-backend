@@ -110,6 +110,8 @@ model User {
   status             UserStatus         @default(ACTIVE)
   verificationStatus VerificationStatus @default(UNVERIFIED)
   onboardedAt        DateTime?
+  /// Creators: brands can find and invite them in Discover. Off = only they can apply.
+  openToInvites      Boolean            @default(true)
   emailVerifiedAt    DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
@@ -212,31 +214,76 @@ model Swipe {
   id        String         @id @default(uuid())
   brandId   String
   creatorId String
+  /// opportunityId or "general": passing for one campaign doesn't hide the creator from the others.
+  scopeKey  String         @default("general")
   direction SwipeDirection
   createdAt DateTime       @default(now())
 
-  @@unique([brandId, creatorId])
+  @@unique([brandId, creatorId, scopeKey])
 }
 
-model Interest {
-  id        String         @id @default(uuid())
-  brandId   String
-  creatorId String
-  senderId  String
-  status    InterestStatus @default(PENDING)
-  expiresAt DateTime
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+enum OpportunityVisibility {
+  PUBLIC
+  PRIVATE
+}
 
-  @@unique([brandId, creatorId])
+enum OpportunityStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+/// A brand's campaign brief before any agreement: what they are hiring for.
+/// PUBLIC briefs are listed to creators (up to applicationLimit applications); PRIVATE are invite-only.
+model Opportunity {
+  id               String                @id @default(uuid())
+  brandId          String
+  title            String
+  brief            String
+  category         String
+  budgetKobo       Int
+  deadlineDays     Int
+  deliverables     String[]
+  coverImageUrl    String?
+  visibility       OpportunityVisibility @default(PUBLIC)
+  applicationLimit Int?
+  status           OpportunityStatus     @default(PUBLISHED)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  interests        Interest[]
+
+  @@index([status, visibility])
+  @@index([brandId])
+}
+
+/// An invitation (brand → creator) or application (creator → brand), optionally for one brief.
+model Interest {
+  id            String         @id @default(uuid())
+  brandId       String
+  creatorId     String
+  senderId      String
+  opportunityId String?
+  opportunity   Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  /// opportunityId or "general"; lets one brand–creator pair connect over several briefs.
+  scopeKey      String         @default("general")
+  message       String?
+  status        InterestStatus @default(PENDING)
+  expiresAt     DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([brandId, creatorId, scopeKey])
   @@index([creatorId, status])
+  @@index([opportunityId, status])
 }
 
 model Match {
-  id           String        @id @default(uuid())
-  brandId      String
-  creatorId    String
-  createdAt    DateTime      @default(now())
+  id            String        @id @default(uuid())
+  brandId       String
+  creatorId     String
+  /// The brief this connection started from (inbox groups by it).
+  opportunityId String?
+  createdAt     DateTime      @default(now())
   conversation Conversation?
   campaigns    Campaign[]
 
@@ -244,8 +291,10 @@ model Match {
 }
 
 model Conversation {
-  id       String    @id @default(uuid())
-  matchId  String    @unique
+  id            String    @id @default(uuid())
+  matchId       String    @unique
+  brandReadAt   DateTime?
+  creatorReadAt DateTime?
   match    Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
   messages Message[]
 }

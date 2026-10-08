@@ -13,6 +13,8 @@ export const creatorSchema = z.object({
   priceFromNgn: z.number().nonnegative().optional(),
   priceToNgn: z.number().nonnegative().optional(),
   availability: z.enum(['available', 'busy', 'booked']).optional(),
+  /** Lets brands find and invite this creator in Discover. */
+  openToInvites: z.boolean().optional(),
   socials: z
     .array(
       z.object({

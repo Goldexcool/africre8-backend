@@ -15,11 +15,12 @@ import { PaymentsModule } from './payments/payments.module.js';
 import { VerificationModule } from './verification/verification.module.js';
 import { ReviewModule } from './review/review.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { OpportunitiesModule } from './opportunities/opportunities.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule, OpportunitiesModule],
   controllers: [HealthController, UploadsController],
   providers: [RealtimeGateway],
 })
