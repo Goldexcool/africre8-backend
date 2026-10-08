@@ -1,0 +1,1633 @@
+[
+ {
+  "id": "usr_demo_creator",
+  "name": "Amara Okoye",
+  "avatarUrl": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fashion and lifestyle creator styling everyday African elegance for the timeline.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@amaraokoye",
+    "followers": 182000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "@amara.styles",
+    "followers": 96000
+   }
+  ],
+  "engagementRate": 6.4,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 91,
+  "completedCampaigns": 34,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1200
+  ]
+ },
+ {
+  "id": "tunde-adeyemi",
+  "name": "Tunde Adeyemi",
+  "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Tech reviewer breaking down gadgets and fintech apps for a Naija audience.",
+  "location": "Abuja, Nigeria",
+  "category": "Tech & Gadgets",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "TundeTechNG",
+    "followers": 310000
+   },
+   {
+    "platform": "x",
+    "handle": "@tundetech",
+    "followers": 54000
+   }
+  ],
+  "engagementRate": 4.1,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 88,
+  "completedCampaigns": 21,
+  "availability": "busy",
+  "budgetRangeUsd": [
+   600,
+   2000
+  ]
+ },
+ {
+  "id": "wanjiru-kamau",
+  "name": "Wanjiru Kamau",
+  "avatarUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Food and culinary storyteller reinventing East African recipes for a new generation.",
+  "location": "Nairobi, Kenya",
+  "category": "Food & Culinary",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@wanjiru.eats",
+    "followers": 74000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "@wanjirueats",
+    "followers": 128000
+   }
+  ],
+  "engagementRate": 8.2,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 95,
+  "completedCampaigns": 47,
+  "availability": "available",
+  "budgetRangeUsd": [
+   250,
+   800
+  ]
+ },
+ {
+  "id": "kwame-mensah",
+  "name": "Kwame Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1500048993953-d23a436266cf?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fitness coach and content creator making home workouts accessible across Ghana.",
+  "location": "Accra, Ghana",
+  "category": "Fitness",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@kwamefit",
+    "followers": 41000
+   },
+   {
+    "platform": "youtube",
+    "handle": "KwameFitGH",
+    "followers": 28000
+   }
+  ],
+  "engagementRate": 5.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 79,
+  "completedCampaigns": 12,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   500
+  ]
+ },
+ {
+  "id": "zanele-dlamini",
+  "name": "Zanele Dlamini",
+  "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Comedy and skits creator bringing everyday Mzansi humor to short-form video.",
+  "location": "Johannesburg, South Africa",
+  "category": "Comedy & Skits",
+  "platforms": [
+   {
+    "platform": "tiktok",
+    "handle": "@zanelelaughs",
+    "followers": 890000
+   },
+   {
+    "platform": "instagram",
+    "handle": "@zanele.d",
+    "followers": 210000
+   }
+  ],
+  "engagementRate": 9.7,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1543269664-56d93c1b41a6?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531123414780-f74242c2b052?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 93,
+  "completedCampaigns": 58,
+  "availability": "booked",
+  "budgetRangeUsd": [
+   1000,
+   3500
+  ]
+ },
+ {
+  "id": "imani-cisse",
+  "name": "Imani Cissé",
+  "avatarUrl": "https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Music artist and songwriter blending Afrobeats with Senegalese mbalax rhythms.",
+  "location": "Dakar, Senegal",
+  "category": "Music",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@imanicisse",
+    "followers": 156000
+   },
+   {
+    "platform": "youtube",
+    "handle": "ImaniCisseMusic",
+    "followers": 67000
+   }
+  ],
+  "engagementRate": 7.1,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 86,
+  "completedCampaigns": 19,
+  "availability": "available",
+  "budgetRangeUsd": [
+   500,
+   1800
+  ]
+ },
+ {
+  "id": "david-mugisha",
+  "name": "David Mugisha",
+  "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Travel creator documenting hidden gems across East and Central Africa.",
+  "location": "Kigali, Rwanda",
+  "category": "Travel",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@davidexplores",
+    "followers": 63000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "@david.mugisha",
+    "followers": 45000
+   }
+  ],
+  "engagementRate": 6.8,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 82,
+  "completedCampaigns": 15,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   900
+  ]
+ },
+ {
+  "id": "fatima-al-sayed",
+  "name": "Fatima Al-Sayed",
+  "avatarUrl": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Beauty and skincare creator reviewing products for North African skin types and climates.",
+  "location": "Cairo, Egypt",
+  "category": "Beauty",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@fatimabeauty",
+    "followers": 245000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "@fatima.glow",
+    "followers": 190000
+   }
+  ],
+  "engagementRate": 5.9,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 90,
+  "completedCampaigns": 41,
+  "availability": "busy",
+  "budgetRangeUsd": [
+   700,
+   2200
+  ]
+ },
+ {
+  "id": "samuel-otieno",
+  "name": "Samuel Otieno",
+  "avatarUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Personal finance and fintech educator simplifying money habits for young Africans.",
+  "location": "Nairobi, Kenya",
+  "category": "Finance & Fintech",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "SamuelTalksMoney",
+    "followers": 118000
+   },
+   {
+    "platform": "x",
+    "handle": "@samuelotieno",
+    "followers": 38000
+   }
+  ],
+  "engagementRate": 3.6,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 84,
+  "completedCampaigns": 9,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1400
+  ]
+ },
+ {
+  "id": "lerato-mokoena",
+  "name": "Lerato Mokoena",
+  "avatarUrl": "https://images.unsplash.com/photo-1489980557514-251d61e3eeb6?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Parenting and family-life creator sharing honest stories of raising kids in the city.",
+  "location": "Cape Town, South Africa",
+  "category": "Parenting",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@lerato.mom",
+    "followers": 52000
+   },
+   {
+    "platform": "facebook",
+    "handle": "Lerato Mokoena",
+    "followers": 31000
+   }
+  ],
+  "engagementRate": 4.9,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 77,
+  "completedCampaigns": 6,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   450
+  ]
+ },
+ {
+  "id": "brian-ssemakula",
+  "name": "Brian Ssemakula",
+  "avatarUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Gaming creator and streamer building a competitive gaming scene in East Africa.",
+  "location": "Kampala, Uganda",
+  "category": "Gaming",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "BrianPlaysUG",
+    "followers": 89000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "@brian.plays",
+    "followers": 61000
+   }
+  ],
+  "engagementRate": 6,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1580327344181-c1163234e5a0?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 80,
+  "completedCampaigns": 14,
+  "availability": "busy",
+  "budgetRangeUsd": [
+   300,
+   1000
+  ]
+ },
+ {
+  "id": "selam-bekele",
+  "name": "Selam Bekele",
+  "avatarUrl": "https://images.unsplash.com/photo-1524638431109-93d95c968f03?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Visual artist and designer merging traditional Ethiopian motifs with modern illustration.",
+  "location": "Addis Ababa, Ethiopia",
+  "category": "Art & Design",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@selam.creates",
+    "followers": 34000
+   }
+  ],
+  "engagementRate": 7.9,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 89,
+  "completedCampaigns": 11,
+  "availability": "available",
+  "budgetRangeUsd": [
+   200,
+   700
+  ]
+ },
+ {
+  "id": "chidinma-eze",
+  "name": "Chidinma Eze",
+  "avatarUrl": "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Micro-creator and photographer capturing street style across Lagos neighborhoods.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "@chidinma.shoots",
+    "followers": 18500
+   }
+  ],
+  "engagementRate": 11.3,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 72,
+  "completedCampaigns": 3,
+  "availability": "available",
+  "budgetRangeUsd": [
+   80,
+   300
+  ]
+ },
+ {
+  "id": "creator-demo-1",
+  "name": "Ada Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fashion & lifestyle stories and brand collaborations.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "ada.mensah1",
+    "followers": 18000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "ada.mensah1",
+    "followers": 18000
+   }
+  ],
+  "engagementRate": 3,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 70,
+  "completedCampaigns": 4,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1200
+  ]
+ },
+ {
+  "id": "creator-demo-2",
+  "name": "Kofi Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing tech & gadgets stories and brand collaborations.",
+  "location": "Abuja, Nigeria",
+  "category": "Tech & Gadgets",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "kofi.mensah2",
+    "followers": 25300
+   },
+   {
+    "platform": "x",
+    "handle": "kofi.mensah2",
+    "followers": 25300
+   }
+  ],
+  "engagementRate": 3.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 71,
+  "completedCampaigns": 5,
+  "availability": "available",
+  "budgetRangeUsd": [
+   600,
+   2000
+  ]
+ },
+ {
+  "id": "creator-demo-3",
+  "name": "Aisha Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing food & culinary stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Food & Culinary",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "aisha.mensah3",
+    "followers": 32600
+   },
+   {
+    "platform": "tiktok",
+    "handle": "aisha.mensah3",
+    "followers": 32600
+   }
+  ],
+  "engagementRate": 4,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 72,
+  "completedCampaigns": 6,
+  "availability": "available",
+  "budgetRangeUsd": [
+   250,
+   800
+  ]
+ },
+ {
+  "id": "creator-demo-4",
+  "name": "David Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1526510747491-58f928ec870f?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fitness stories and brand collaborations.",
+  "location": "Accra, Ghana",
+  "category": "Fitness",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "david.mensah4",
+    "followers": 39900
+   },
+   {
+    "platform": "youtube",
+    "handle": "david.mensah4",
+    "followers": 39900
+   }
+  ],
+  "engagementRate": 4.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 73,
+  "completedCampaigns": 7,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   500
+  ]
+ },
+ {
+  "id": "creator-demo-5",
+  "name": "Nia Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing comedy & skits stories and brand collaborations.",
+  "location": "Johannesburg, South Africa",
+  "category": "Comedy & Skits",
+  "platforms": [
+   {
+    "platform": "tiktok",
+    "handle": "nia.mensah5",
+    "followers": 47200
+   },
+   {
+    "platform": "instagram",
+    "handle": "nia.mensah5",
+    "followers": 47200
+   }
+  ],
+  "engagementRate": 5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1543269664-56d93c1b41a6?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531123414780-f74242c2b052?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 74,
+  "completedCampaigns": 8,
+  "availability": "available",
+  "budgetRangeUsd": [
+   1000,
+   3500
+  ]
+ },
+ {
+  "id": "creator-demo-6",
+  "name": "Emeka Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing music stories and brand collaborations.",
+  "location": "Dakar, Senegal",
+  "category": "Music",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "emeka.mensah6",
+    "followers": 54500
+   },
+   {
+    "platform": "youtube",
+    "handle": "emeka.mensah6",
+    "followers": 54500
+   }
+  ],
+  "engagementRate": 5.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 75,
+  "completedCampaigns": 9,
+  "availability": "available",
+  "budgetRangeUsd": [
+   500,
+   1800
+  ]
+ },
+ {
+  "id": "creator-demo-7",
+  "name": "Zuri Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing travel stories and brand collaborations.",
+  "location": "Kigali, Rwanda",
+  "category": "Travel",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "zuri.mensah7",
+    "followers": 61800
+   },
+   {
+    "platform": "tiktok",
+    "handle": "zuri.mensah7",
+    "followers": 61800
+   }
+  ],
+  "engagementRate": 6,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 76,
+  "completedCampaigns": 10,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   900
+  ]
+ },
+ {
+  "id": "creator-demo-8",
+  "name": "Musa Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing beauty stories and brand collaborations.",
+  "location": "Cairo, Egypt",
+  "category": "Beauty",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "musa.mensah8",
+    "followers": 69100
+   },
+   {
+    "platform": "tiktok",
+    "handle": "musa.mensah8",
+    "followers": 69100
+   }
+  ],
+  "engagementRate": 6.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 77,
+  "completedCampaigns": 11,
+  "availability": "available",
+  "budgetRangeUsd": [
+   700,
+   2200
+  ]
+ },
+ {
+  "id": "creator-demo-9",
+  "name": "Fatima Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing finance & fintech stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Finance & Fintech",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "fatima.mensah9",
+    "followers": 76400
+   },
+   {
+    "platform": "x",
+    "handle": "fatima.mensah9",
+    "followers": 76400
+   }
+  ],
+  "engagementRate": 7,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 78,
+  "completedCampaigns": 12,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1400
+  ]
+ },
+ {
+  "id": "creator-demo-10",
+  "name": "Theo Mensah",
+  "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing parenting stories and brand collaborations.",
+  "location": "Cape Town, South Africa",
+  "category": "Parenting",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "theo.mensah10",
+    "followers": 83700
+   },
+   {
+    "platform": "facebook",
+    "handle": "theo.mensah10",
+    "followers": 83700
+   }
+  ],
+  "engagementRate": 7.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 79,
+  "completedCampaigns": 13,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   450
+  ]
+ },
+ {
+  "id": "creator-demo-11",
+  "name": "Ada Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing gaming stories and brand collaborations.",
+  "location": "Kampala, Uganda",
+  "category": "Gaming",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "ada.bello11",
+    "followers": 91000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "ada.bello11",
+    "followers": 91000
+   }
+  ],
+  "engagementRate": 8,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1580327344181-c1163234e5a0?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 80,
+  "completedCampaigns": 14,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   1000
+  ]
+ },
+ {
+  "id": "creator-demo-12",
+  "name": "Kofi Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing art & design stories and brand collaborations.",
+  "location": "Addis Ababa, Ethiopia",
+  "category": "Art & Design",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "kofi.bello12",
+    "followers": 98300
+   }
+  ],
+  "engagementRate": 8.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 81,
+  "completedCampaigns": 15,
+  "availability": "available",
+  "budgetRangeUsd": [
+   200,
+   700
+  ]
+ },
+ {
+  "id": "creator-demo-13",
+  "name": "Aisha Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fashion & lifestyle stories and brand collaborations.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "aisha.bello13",
+    "followers": 105600
+   }
+  ],
+  "engagementRate": 9,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 82,
+  "completedCampaigns": 16,
+  "availability": "available",
+  "budgetRangeUsd": [
+   80,
+   300
+  ]
+ },
+ {
+  "id": "creator-demo-14",
+  "name": "David Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fashion & lifestyle stories and brand collaborations.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "david.bello14",
+    "followers": 112900
+   },
+   {
+    "platform": "tiktok",
+    "handle": "david.bello14",
+    "followers": 112900
+   }
+  ],
+  "engagementRate": 9.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 83,
+  "completedCampaigns": 17,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1200
+  ]
+ },
+ {
+  "id": "creator-demo-15",
+  "name": "Nia Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing tech & gadgets stories and brand collaborations.",
+  "location": "Abuja, Nigeria",
+  "category": "Tech & Gadgets",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "nia.bello15",
+    "followers": 120200
+   },
+   {
+    "platform": "x",
+    "handle": "nia.bello15",
+    "followers": 120200
+   }
+  ],
+  "engagementRate": 10,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 84,
+  "completedCampaigns": 18,
+  "availability": "available",
+  "budgetRangeUsd": [
+   600,
+   2000
+  ]
+ },
+ {
+  "id": "creator-demo-16",
+  "name": "Emeka Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing food & culinary stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Food & Culinary",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "emeka.bello16",
+    "followers": 127500
+   },
+   {
+    "platform": "tiktok",
+    "handle": "emeka.bello16",
+    "followers": 127500
+   }
+  ],
+  "engagementRate": 3,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 85,
+  "completedCampaigns": 19,
+  "availability": "available",
+  "budgetRangeUsd": [
+   250,
+   800
+  ]
+ },
+ {
+  "id": "creator-demo-17",
+  "name": "Zuri Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fitness stories and brand collaborations.",
+  "location": "Accra, Ghana",
+  "category": "Fitness",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "zuri.bello17",
+    "followers": 134800
+   },
+   {
+    "platform": "youtube",
+    "handle": "zuri.bello17",
+    "followers": 134800
+   }
+  ],
+  "engagementRate": 3.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 86,
+  "completedCampaigns": 20,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   500
+  ]
+ },
+ {
+  "id": "creator-demo-18",
+  "name": "Musa Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing comedy & skits stories and brand collaborations.",
+  "location": "Johannesburg, South Africa",
+  "category": "Comedy & Skits",
+  "platforms": [
+   {
+    "platform": "tiktok",
+    "handle": "musa.bello18",
+    "followers": 142100
+   },
+   {
+    "platform": "instagram",
+    "handle": "musa.bello18",
+    "followers": 142100
+   }
+  ],
+  "engagementRate": 4,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1543269664-56d93c1b41a6?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531123414780-f74242c2b052?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 87,
+  "completedCampaigns": 21,
+  "availability": "available",
+  "budgetRangeUsd": [
+   1000,
+   3500
+  ]
+ },
+ {
+  "id": "creator-demo-19",
+  "name": "Fatima Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1554774853-719586f82d77?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing music stories and brand collaborations.",
+  "location": "Dakar, Senegal",
+  "category": "Music",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "fatima.bello19",
+    "followers": 149400
+   },
+   {
+    "platform": "youtube",
+    "handle": "fatima.bello19",
+    "followers": 149400
+   }
+  ],
+  "engagementRate": 4.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 88,
+  "completedCampaigns": 22,
+  "availability": "available",
+  "budgetRangeUsd": [
+   500,
+   1800
+  ]
+ },
+ {
+  "id": "creator-demo-20",
+  "name": "Theo Bello",
+  "avatarUrl": "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing travel stories and brand collaborations.",
+  "location": "Kigali, Rwanda",
+  "category": "Travel",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "theo.bello20",
+    "followers": 156700
+   },
+   {
+    "platform": "tiktok",
+    "handle": "theo.bello20",
+    "followers": 156700
+   }
+  ],
+  "engagementRate": 5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 89,
+  "completedCampaigns": 23,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   900
+  ]
+ },
+ {
+  "id": "creator-demo-21",
+  "name": "Ada Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1532170579297-281918c8ae72?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing beauty stories and brand collaborations.",
+  "location": "Cairo, Egypt",
+  "category": "Beauty",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "ada.okafor21",
+    "followers": 164000
+   },
+   {
+    "platform": "tiktok",
+    "handle": "ada.okafor21",
+    "followers": 164000
+   }
+  ],
+  "engagementRate": 5.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 90,
+  "completedCampaigns": 24,
+  "availability": "available",
+  "budgetRangeUsd": [
+   700,
+   2200
+  ]
+ },
+ {
+  "id": "creator-demo-22",
+  "name": "Kofi Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing finance & fintech stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Finance & Fintech",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "kofi.okafor22",
+    "followers": 171300
+   },
+   {
+    "platform": "x",
+    "handle": "kofi.okafor22",
+    "followers": 171300
+   }
+  ],
+  "engagementRate": 6,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 91,
+  "completedCampaigns": 25,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1400
+  ]
+ },
+ {
+  "id": "creator-demo-23",
+  "name": "Aisha Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing parenting stories and brand collaborations.",
+  "location": "Cape Town, South Africa",
+  "category": "Parenting",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "aisha.okafor23",
+    "followers": 178600
+   },
+   {
+    "platform": "facebook",
+    "handle": "aisha.okafor23",
+    "followers": 178600
+   }
+  ],
+  "engagementRate": 6.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 92,
+  "completedCampaigns": 26,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   450
+  ]
+ },
+ {
+  "id": "creator-demo-24",
+  "name": "David Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing gaming stories and brand collaborations.",
+  "location": "Kampala, Uganda",
+  "category": "Gaming",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "david.okafor24",
+    "followers": 185900
+   },
+   {
+    "platform": "tiktok",
+    "handle": "david.okafor24",
+    "followers": 185900
+   }
+  ],
+  "engagementRate": 7,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1580327344181-c1163234e5a0?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 93,
+  "completedCampaigns": 27,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   1000
+  ]
+ },
+ {
+  "id": "creator-demo-25",
+  "name": "Nia Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing art & design stories and brand collaborations.",
+  "location": "Addis Ababa, Ethiopia",
+  "category": "Art & Design",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "nia.okafor25",
+    "followers": 193200
+   }
+  ],
+  "engagementRate": 7.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 94,
+  "completedCampaigns": 28,
+  "availability": "available",
+  "budgetRangeUsd": [
+   200,
+   700
+  ]
+ },
+ {
+  "id": "creator-demo-26",
+  "name": "Emeka Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fashion & lifestyle stories and brand collaborations.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "emeka.okafor26",
+    "followers": 200500
+   }
+  ],
+  "engagementRate": 8,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 95,
+  "completedCampaigns": 29,
+  "availability": "available",
+  "budgetRangeUsd": [
+   80,
+   300
+  ]
+ },
+ {
+  "id": "creator-demo-27",
+  "name": "Zuri Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fashion & lifestyle stories and brand collaborations.",
+  "location": "Lagos, Nigeria",
+  "category": "Fashion & Lifestyle",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "zuri.okafor27",
+    "followers": 207800
+   },
+   {
+    "platform": "tiktok",
+    "handle": "zuri.okafor27",
+    "followers": 207800
+   }
+  ],
+  "engagementRate": 8.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 70,
+  "completedCampaigns": 30,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1200
+  ]
+ },
+ {
+  "id": "creator-demo-28",
+  "name": "Musa Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing tech & gadgets stories and brand collaborations.",
+  "location": "Abuja, Nigeria",
+  "category": "Tech & Gadgets",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "musa.okafor28",
+    "followers": 215100
+   },
+   {
+    "platform": "x",
+    "handle": "musa.okafor28",
+    "followers": 215100
+   }
+  ],
+  "engagementRate": 9,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 71,
+  "completedCampaigns": 31,
+  "availability": "available",
+  "budgetRangeUsd": [
+   600,
+   2000
+  ]
+ },
+ {
+  "id": "creator-demo-29",
+  "name": "Fatima Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1542103749-8ef59b94f47e?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing food & culinary stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Food & Culinary",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "fatima.okafor29",
+    "followers": 222400
+   },
+   {
+    "platform": "tiktok",
+    "handle": "fatima.okafor29",
+    "followers": 222400
+   }
+  ],
+  "engagementRate": 9.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 72,
+  "completedCampaigns": 32,
+  "availability": "available",
+  "budgetRangeUsd": [
+   250,
+   800
+  ]
+ },
+ {
+  "id": "creator-demo-30",
+  "name": "Theo Okafor",
+  "avatarUrl": "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing fitness stories and brand collaborations.",
+  "location": "Accra, Ghana",
+  "category": "Fitness",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "theo.okafor30",
+    "followers": 229700
+   },
+   {
+    "platform": "youtube",
+    "handle": "theo.okafor30",
+    "followers": 229700
+   }
+  ],
+  "engagementRate": 10,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 73,
+  "completedCampaigns": 33,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   500
+  ]
+ },
+ {
+  "id": "creator-demo-31",
+  "name": "Ada Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1558898479-33c0057a5d12?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing comedy & skits stories and brand collaborations.",
+  "location": "Johannesburg, South Africa",
+  "category": "Comedy & Skits",
+  "platforms": [
+   {
+    "platform": "tiktok",
+    "handle": "ada.diallo31",
+    "followers": 237000
+   },
+   {
+    "platform": "instagram",
+    "handle": "ada.diallo31",
+    "followers": 237000
+   }
+  ],
+  "engagementRate": 3,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1543269664-56d93c1b41a6?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1531123414780-f74242c2b052?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 74,
+  "completedCampaigns": 34,
+  "availability": "available",
+  "budgetRangeUsd": [
+   1000,
+   3500
+  ]
+ },
+ {
+  "id": "creator-demo-32",
+  "name": "Kofi Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1541647376583-8934aaf3448a?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing music stories and brand collaborations.",
+  "location": "Dakar, Senegal",
+  "category": "Music",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "kofi.diallo32",
+    "followers": 244300
+   },
+   {
+    "platform": "youtube",
+    "handle": "kofi.diallo32",
+    "followers": 244300
+   }
+  ],
+  "engagementRate": 3.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 75,
+  "completedCampaigns": 35,
+  "availability": "available",
+  "budgetRangeUsd": [
+   500,
+   1800
+  ]
+ },
+ {
+  "id": "creator-demo-33",
+  "name": "Aisha Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing travel stories and brand collaborations.",
+  "location": "Kigali, Rwanda",
+  "category": "Travel",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "aisha.diallo33",
+    "followers": 251600
+   },
+   {
+    "platform": "tiktok",
+    "handle": "aisha.diallo33",
+    "followers": 251600
+   }
+  ],
+  "engagementRate": 4,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 76,
+  "completedCampaigns": 36,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   900
+  ]
+ },
+ {
+  "id": "creator-demo-34",
+  "name": "David Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing beauty stories and brand collaborations.",
+  "location": "Cairo, Egypt",
+  "category": "Beauty",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "david.diallo34",
+    "followers": 258900
+   },
+   {
+    "platform": "tiktok",
+    "handle": "david.diallo34",
+    "followers": 258900
+   }
+  ],
+  "engagementRate": 4.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 77,
+  "completedCampaigns": 37,
+  "availability": "available",
+  "budgetRangeUsd": [
+   700,
+   2200
+  ]
+ },
+ {
+  "id": "creator-demo-35",
+  "name": "Nia Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1514315384763-ba401779410f?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing finance & fintech stories and brand collaborations.",
+  "location": "Nairobi, Kenya",
+  "category": "Finance & Fintech",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "nia.diallo35",
+    "followers": 266200
+   },
+   {
+    "platform": "x",
+    "handle": "nia.diallo35",
+    "followers": 266200
+   }
+  ],
+  "engagementRate": 5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 78,
+  "completedCampaigns": 38,
+  "availability": "available",
+  "budgetRangeUsd": [
+   400,
+   1400
+  ]
+ },
+ {
+  "id": "creator-demo-36",
+  "name": "Emeka Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing parenting stories and brand collaborations.",
+  "location": "Cape Town, South Africa",
+  "category": "Parenting",
+  "platforms": [
+   {
+    "platform": "instagram",
+    "handle": "emeka.diallo36",
+    "followers": 273500
+   },
+   {
+    "platform": "facebook",
+    "handle": "emeka.diallo36",
+    "followers": 273500
+   }
+  ],
+  "engagementRate": 5.5,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 79,
+  "completedCampaigns": 39,
+  "availability": "available",
+  "budgetRangeUsd": [
+   150,
+   450
+  ]
+ },
+ {
+  "id": "creator-demo-37",
+  "name": "Zuri Diallo",
+  "avatarUrl": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&crop=faces&w=1200&h=1500&q=85",
+  "bio": "Fictional demo creator sharing gaming stories and brand collaborations.",
+  "location": "Kampala, Uganda",
+  "category": "Gaming",
+  "platforms": [
+   {
+    "platform": "youtube",
+    "handle": "zuri.diallo37",
+    "followers": 280800
+   },
+   {
+    "platform": "tiktok",
+    "handle": "zuri.diallo37",
+    "followers": 280800
+   }
+  ],
+  "engagementRate": 6,
+  "portfolio": [
+   "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&h=1000&fit=crop",
+   "https://images.unsplash.com/photo-1580327344181-c1163234e5a0?w=800&h=1000&fit=crop"
+  ],
+  "credibilityScore": 80,
+  "completedCampaigns": 40,
+  "availability": "available",
+  "budgetRangeUsd": [
+   300,
+   1000
+  ]
+ }
+]
