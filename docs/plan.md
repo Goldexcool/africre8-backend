@@ -6,12 +6,19 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 6: Realtime** (2026-10-08)
-- `RealtimeGateway` (`src/realtime`): authenticates with the access JWT on connect (`auth.token` or a Bearer header) and puts each socket in a single `user:{id}` room. Membership checks stay in the services.
-- Client events: `chat:send` (with ack), `chat:typing`. Server events: `notification`, `match`, `message`, `chat:typing`, plus the campaign/payment events from later tasks.
-- `RedisIoAdapter` lets any API instance reach any socket. `redisSocketEmitter()` lets the worker push events through Redis too.
-- The global HTTP `AuthGuard` skips WS contexts. socket.io is pinned to 4.8.3 to match `@nestjs/platform-socket.io`.
-- Verified: `test/realtime.e2e-spec.ts` (bad token disconnected; interest notification, match and chat message received live).
+**Task 7: Campaigns + state machine** (2026-10-08)
+- `CampaignStateMachine.transition()` (`src/campaigns/state-machine.ts`) is the only way a status changes:
+  - the transition table is ported from the mobile reducer, plus revision, dispute and payout-retry paths
+  - compare-and-set on the current status, so a concurrent webhook and reconcile can't both win
+  - `funded` and `completed` require a successful FUNDING/PAYOUT transaction
+  - every move writes an `AuditLog` row and emits a `campaign` socket event to both parties
+- `POST /campaigns` (brand, from a match; one open campaign per match; the brand auto-accepts; adds a chat system message and notifies the creator).
+- `PUT /campaigns/:id/terms`: either party may edit before funding. It bumps `termsVersion` and clears the other side's acceptance.
+- `POST /campaigns/:id/accept {termsVersion}`: a stale version gets 409. Once both have accepted, the campaign moves to `awaiting_funding`.
+- `POST /campaigns/:id/start` (creator), `GET /campaigns`, `GET /campaigns/:id`. The detail includes requirements, submissions + verifications, transactions, disputes, `history` (the audit trail) and `totalPayableKobo`.
+- Fee: `PLATFORM_FEE_BPS` (default 5%), paid by the brand on top.
+- Note: about 240 ms per query from this Mac to Neon us-east-2, so the e2e timeout is 120s. **Deploy Railway in US-East** next to Neon.
+- Verified: `test/campaigns.e2e-spec.ts`.
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
@@ -23,7 +30,7 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 4. Profiles (creator/brand/socials/payout destination), Cloudinary signed upload, seed (30 creators, 3 brands, 1 admin).
 - [x] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
 - [x] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
-- [ ] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
+- [x] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
 - [ ] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.
 - [ ] 9. Verification worker: YouTube Data API + TikTok oEmbed + yt-dlp/ffmpeg frames → Claude → PASS/PARTIAL/FAIL/NEEDS_REVIEW.
 - [ ] 10. Review (approve → payout, revision, dispute) + admin API (users, campaigns, transactions, webhook replay, verifications, disputes).

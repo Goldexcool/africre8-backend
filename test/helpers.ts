@@ -56,3 +56,21 @@ export async function cleanup(prisma: PrismaService) {
     prisma.user.deleteMany({ where: { id: { in: ids } } }),
   ]);
 }
+
+/** Brand + creator that have matched; returns both users and the match/conversation ids. */
+export async function makeMatch(http: ReturnType<typeof request>) {
+  const brand = await makeUser(http, 'BRAND');
+  const creator = await makeUser(http, 'CREATOR');
+  const swipe = await http.post('/swipes').set(brand.auth).send({ creatorId: creator.id, direction: 'LIKE' }).expect(201);
+  const res = await http.post(`/interests/${swipe.body.interest.id}/respond`).set(creator.auth).send({ accept: true }).expect(201);
+  return { brand, creator, matchId: res.body.match.id as string, conversationId: res.body.match.conversation.id as string };
+}
+
+export const sampleTerms = (overrides: Record<string, unknown> = {}) => ({
+  title: 'Red Handbag Launch',
+  brief: 'A TikTok video featuring our red Adire handbag in an everyday Lagos outfit.',
+  amountNgn: 200000,
+  deadline: new Date(Date.now() + 7 * 864e5).toISOString(),
+  requirements: [{ title: '1 TikTok video', platform: 'tiktok', hashtags: ['AdireAtelier'], mentions: ['adireatelier'], contentBrief: 'Red handbag clearly featured' }],
+  ...overrides,
+});
