@@ -1,0 +1,385 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  BRAND
+  CREATOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Platform {
+  TIKTOK
+  YOUTUBE
+  INSTAGRAM
+  X
+}
+
+enum SwipeDirection {
+  LIKE
+  PASS
+}
+
+enum InterestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+// Mirrors CampaignStatus in the mobile app (src/types/domain.ts)
+enum CampaignStatus {
+  pending_agreement
+  awaiting_funding
+  funded
+  in_progress
+  submitted
+  under_review
+  revision_required
+  approved
+  payout_processing
+  payout_failed
+  completed
+  disputed
+}
+
+enum TransactionKind {
+  FUNDING
+  PAYOUT
+}
+
+enum TransactionStatus {
+  pending
+  processing
+  successful
+  failed
+}
+
+enum Verdict {
+  PASS
+  PARTIAL
+  FAIL
+  NEEDS_REVIEW
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED_RELEASE
+  RESOLVED_REFUND
+  RESOLVED_REVISION
+}
+
+enum MessageKind {
+  text
+  system
+}
+
+model User {
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  phone              String?            @unique
+  passwordHash       String
+  role               Role
+  status             UserStatus         @default(ACTIVE)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  onboardedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  creatorProfile    CreatorProfile?
+  brandProfile      BrandProfile?
+  payoutDestination PayoutDestination?
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
+  messages          Message[]
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique
+  family       String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
+
+  @@index([family])
+}
+
+model CreatorProfile {
+  userId             String          @id
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName        String
+  avatarUrl          String?
+  bio                String?
+  location           String?
+  category           String?
+  niches             String[]
+  portfolio          String[]
+  priceFromKobo      Int?
+  credibilityScore   Float           @default(0)
+  ratingAvg          Float           @default(0)
+  completedCampaigns Int             @default(0)
+  available          Boolean         @default(true)
+  socials            SocialAccount[]
+}
+
+model SocialAccount {
+  id             String         @id @default(uuid())
+  creatorId      String
+  creator        CreatorProfile @relation(fields: [creatorId], references: [userId], onDelete: Cascade)
+  platform       Platform
+  handle         String
+  url            String?
+  followers      Int            @default(0)
+  engagementRate Float          @default(0)
+
+  @@unique([creatorId, platform])
+}
+
+model BrandProfile {
+  userId       String  @id
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName String
+  logoUrl      String?
+  industry     String?
+  website      String?
+  contactName  String?
+  location     String?
+  about        String?
+}
+
+model PayoutDestination {
+  userId        String   @id
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankCode      String
+  bankName      String
+  accountNumber String
+  accountName   String
+  updatedAt     DateTime @updatedAt
+}
+
+model Swipe {
+  id        String         @id @default(uuid())
+  brandId   String
+  creatorId String
+  direction SwipeDirection
+  createdAt DateTime       @default(now())
+
+  @@unique([brandId, creatorId])
+}
+
+model Interest {
+  id        String         @id @default(uuid())
+  brandId   String
+  creatorId String
+  senderId  String
+  status    InterestStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([brandId, creatorId])
+  @@index([creatorId, status])
+}
+
+model Match {
+  id           String        @id @default(uuid())
+  brandId      String
+  creatorId    String
+  createdAt    DateTime      @default(now())
+  conversation Conversation?
+  campaigns    Campaign[]
+
+  @@unique([brandId, creatorId])
+}
+
+model Conversation {
+  id       String    @id @default(uuid())
+  matchId  String    @unique
+  match    Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  messages Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String?
+  sender         User?        @relation(fields: [senderId], references: [id])
+  kind           MessageKind  @default(text)
+  text           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Campaign {
+  id                String         @id @default(uuid())
+  matchId           String
+  match             Match          @relation(fields: [matchId], references: [id])
+  brandId           String
+  creatorId         String
+  title             String
+  brief             String
+  amountKobo        Int
+  feeKobo           Int            @default(0)
+  currency          String         @default("NGN")
+  deadline          DateTime
+  revisionLimit     Int            @default(2)
+  usageRights       String?
+  status            CampaignStatus @default(pending_agreement)
+  termsVersion      Int            @default(1)
+  brandAcceptedAt   DateTime?
+  creatorAcceptedAt DateTime?
+  fundedAt          DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  requirements DeliverableRequirement[]
+  submissions  Submission[]
+  transactions Transaction[]
+  disputes     Dispute[]
+
+  @@index([brandId, status])
+  @@index([creatorId, status])
+}
+
+model DeliverableRequirement {
+  id             String       @id @default(uuid())
+  campaignId     String
+  campaign       Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  position       Int
+  title          String
+  platform       Platform?
+  hashtags       String[]
+  mentions       String[]
+  contentBrief   String?
+  submissions    Submission[]
+}
+
+model Submission {
+  id            String                 @id @default(uuid())
+  campaignId    String
+  campaign      Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  requirementId String
+  requirement   DeliverableRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  contentUrl    String
+  notes         String?
+  evidenceUrls  String[]
+  late          Boolean                @default(false)
+  superseded    Boolean                @default(false)
+  revisionNote  String?
+  createdAt     DateTime               @default(now())
+  verifications VerificationRun[]
+}
+
+model VerificationRun {
+  id           String     @id @default(uuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  verdict      Verdict?
+  checks       Json?
+  summary      String?
+  evidence     Json?
+  model        String?
+  error        String?
+  startedAt    DateTime   @default(now())
+  finishedAt   DateTime?
+}
+
+model Transaction {
+  id               String            @id @default(uuid())
+  campaignId       String
+  campaign         Campaign          @relation(fields: [campaignId], references: [id])
+  kind             TransactionKind
+  amountKobo       Int
+  feeKobo          Int               @default(0)
+  currency         String            @default("NGN")
+  status           TransactionStatus @default(pending)
+  idempotencyKey   String            @unique
+  payazaReference  String            @unique
+  providerResponse Json?
+  failureReason    String?
+  createdAt        DateTime          @default(now())
+  resolvedAt       DateTime?
+
+  @@index([campaignId, kind])
+}
+
+model WebhookEvent {
+  id          String    @id @default(uuid())
+  provider    String
+  eventId     String    @unique
+  type        String?
+  reference   String?
+  payload     Json
+  signatureOk Boolean
+  processedAt DateTime?
+  error       String?
+  receivedAt  DateTime  @default(now())
+}
+
+model Dispute {
+  id         String        @id @default(uuid())
+  campaignId String
+  campaign   Campaign      @relation(fields: [campaignId], references: [id])
+  raisedById String
+  reason     String
+  evidence   String[]
+  status     DisputeStatus @default(OPEN)
+  resolution String?
+  createdAt  DateTime      @default(now())
+  resolvedAt DateTime?
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  title     String
+  body      String
+  linkTo    String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  entity     String
+  entityId   String
+  fromState  String?
+  toState    String?
+  reference  String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+}
