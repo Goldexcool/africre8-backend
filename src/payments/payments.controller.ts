@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Headers, HttpCode, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, HttpCode, Param, ParseUUIDPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { z } from 'zod';
@@ -63,6 +63,25 @@ export class PaymentsController {
   @Post('webhooks/payaza')
   webhook(@Req() req: RawBodyRequest<Request>, @Headers('x-payaza-signature') signature: string | undefined, @Body() body: unknown) {
     return this.payments.handleWebhook(req.rawBody ?? Buffer.from(JSON.stringify(body)), signature, body);
+  }
+
+  /**
+   * Browser return URL for Payaza ("callback/redirect URL"). Re-checks the payment with Payaza, then
+   * shows the result and hands the user back to the app. Declared before pay/:reference so it wins.
+   */
+  @Public()
+  @Get('pay/callback')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  async callback(@Query() q: Record<string, string>) {
+    const reference = q.transaction_reference ?? q.reference ?? q.ref ?? q.trxref ?? '';
+    const t = reference ? await this.payments.reconcileByReference(reference).catch(() => null) : null;
+    const scheme = process.env.APP_SCHEME ?? 'africre8';
+    const back = t ? `${scheme}://campaigns/${t.campaignId}` : `${scheme}://`;
+    const msg = t?.status === 'successful' ? 'Payment confirmed' : t?.status === 'failed' ? 'Payment failed' : 'Payment processing';
+    const sub = t?.status === 'successful' ? 'Your campaign is funded. The creator has been notified.' : t?.status === 'failed' ? 'No money was taken. You can try again in the app.' : "We'll update the app automatically as soon as Payaza confirms.";
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${msg} · AfiCre8</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0f0d0b;color:#f6efe6;font:16px/1.5 system-ui,sans-serif;text-align:center}main{padding:24px}a{display:inline-block;margin-top:24px;padding:14px 22px;border-radius:12px;background:#ff7a3d;color:#1a0f08;font-weight:700;text-decoration:none}p{color:#a89f93}</style></head>
+<body><main><h1>${msg}</h1><p>${sub}</p><a href="${back}">Back to AfiCre8</a></main><script>setTimeout(()=>{location.href=${JSON.stringify(back)}},1500)</script></body></html>`;
   }
 
   @Public()
