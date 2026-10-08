@@ -6,13 +6,17 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 10b: Email via Brevo** (2026-10-08)
-- `MailService` (`src/mail`) sends branded HTML through the Brevo transactional API. Without `BREVO_API_KEY` (tests) mail goes to an in-memory `outbox`. Sending is best-effort: in-app notifications remain the source of truth.
-- `OtpCode` model holds 4-digit codes (matching the mobile `CodeInput`), bcrypt-hashed, 15-min expiry, 5 attempts, single use; only the newest code is valid.
-- Endpoints: `POST /auth/send-verification`, `POST /auth/verify-email` (a code is sent automatically on register), `POST /auth/forgot-password` (always 204, so it can't reveal which emails exist), `POST /auth/verify-reset-code`, `POST /auth/reset-password` (revokes every session).
-- Notifications of kind agreement/funding/payout/dispute/review are also emailed.
-- **Needs**: the sender `louisdiaz43@gmail.com` must be a verified sender in Brevo, or Brevo rejects the mail.
-- Verified: `test/email-codes.e2e-spec.ts` (wrong code, single use, no enumeration, reset revokes refresh tokens). 16/16 e2e tests pass.
+**Task 11: Railway deploy** (2026-10-08)
+- Project `africre8-backend` (https://railway.com/project/e92035a8-ef25-4a4f-b46e-2da64fb9fab6). Services `api`, `worker`, `Redis`, all in **us-east4**, next to Neon.
+- **API URL: https://api-production-4030.up.railway.app**. Payaza webhook: `https://api-production-4030.up.railway.app/webhooks/payaza`.
+- Both services run one Dockerfile image (`railway.json` forces the DOCKERFILE builder). `PROCESS=worker` selects the worker. The API runs `prisma migrate deploy` on boot.
+- Variables come from `.env` per service, plus `REDIS_URL=${{Redis.REDIS_URL}}` (private network) and `PUBLIC_URL`.
+- Deploy: `railway up --service api --detach` and `railway up --service worker --detach`.
+- SSH: `ssh -i ~/.ssh/railway_africre8 <service-user>@ssh.railway.com` (`railway ssh config --service worker` prints the block).
+- Verified in production:
+  - `/health` returns db up; demo brand login works; migrations applied
+  - **a real TikTok runs through yt-dlp → 6 ffmpeg frames → Groq Whisper transcript → Azure gpt-5.3-chat in about 12s**, with correct pass/fail plus frame and transcript evidence
+- Known limitation: YouTube blocks datacenter IPs. Metadata still works through oEmbed; for frames and audio set `YTDLP_COOKIES` (cookies.txt contents). TikTok works without it.
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Azure OpenAI (vision) + Groq (Whisper) · Docker + nginx · Railway.
@@ -29,7 +33,7 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 9. Verification worker: yt-dlp/oEmbed metadata + ffmpeg frames + Groq Whisper transcript → Azure OpenAI → PASS/PARTIAL/FAIL/NEEDS_REVIEW.
 - [x] 10. Review (approve → payout, revision, dispute) + admin API (users, campaigns, transactions, webhook replay, verifications, disputes).
 - [x] 10b. Email via Brevo: signup verification code, forgot/reset password (6-digit codes, hashed, 15-min expiry), money emails (funded, payout sent/failed).
-- [ ] 11. Railway deploy (api + worker + redis), migrate, seed; set Payaza webhook URL.
+- [x] 11. Railway deploy (api + worker + redis), migrate, seed; set Payaza webhook URL.
 - [x] 12. Golden-path e2e (`test/golden-path.e2e-spec.ts`, MockProvider): duplicate webhook ⇒ one payout; failed payout stays `payout_failed`.
 
 Mobile tasks (wire to API, full-screen swipe, UI/animation overhaul, admin web) are tracked in the mobile repo.
