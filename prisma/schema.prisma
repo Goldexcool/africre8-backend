@@ -27,11 +27,19 @@ enum VerificationStatus {
   REJECTED
 }
 
+// Lowercase to match the mobile app's SocialPlatform
 enum Platform {
-  TIKTOK
-  YOUTUBE
-  INSTAGRAM
-  X
+  instagram
+  tiktok
+  youtube
+  x
+  facebook
+}
+
+enum Availability {
+  available
+  busy
+  booked
 }
 
 enum SwipeDirection {
@@ -138,10 +146,11 @@ model CreatorProfile {
   niches             String[]
   portfolio          String[]
   priceFromKobo      Int?
+  priceToKobo        Int?
   credibilityScore   Float           @default(0)
   ratingAvg          Float           @default(0)
   completedCampaigns Int             @default(0)
-  available          Boolean         @default(true)
+  availability       Availability    @default(available)
   socials            SocialAccount[]
 }
 

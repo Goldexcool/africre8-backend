@@ -6,18 +6,25 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 1: Scaffold.**
-- NestJS 12 (ESM) + Prisma 7.10 (pg adapter) on Neon. Full domain schema migrated (21 tables) plus partial unique indexes: one live payout and one live funding per campaign.
-- Env validated with zod (`src/config/env.ts`). `GET /health` checks the DB.
-- Verified: `npm run build`, `npm run lint`, `npm run test:e2e` (health → db up).
+**Task 3: Auth.**
+- `POST /auth/register|login|refresh|logout`, `GET /auth/me`.
+- Access JWT is 15m. Refresh tokens are opaque, sha256-hashed in `RefreshToken`, and rotated on every refresh. A concurrent or replayed token revokes the whole family.
+- Global `AuthGuard` with `@Public()` and `@Roles()`. `OnboardedGuard` is in `src/common`.
+- Verified: `test/auth.e2e-spec.ts` (rotation, reuse revokes family, logout, 401/409 paths).
+
+**Task 2: Docker.**
+- One image (node 24 + ffmpeg + yt-dlp). The API runs `prisma migrate deploy` then starts; the worker is `node dist/worker.js`.
+- Compose runs nginx (WebSocket upgrade for `/socket.io`) → api, worker, redis (AOF volume).
+- BullMQ gets a constructed ioredis client (`createRedis()` in `src/queue/queue.module.ts`), as required under ESM.
+- Verified: `docker compose up -d --build` → `curl localhost/health` returns db up through nginx; worker logs "Worker started".
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
 
 ## Tasks
 - [x] 1. Scaffold Nest + Prisma (Neon) + env validation + `/health`. Push to GitHub.
-- [ ] 2. Dockerfile (api + worker from one image) + docker-compose (nginx → api, worker, redis). Check: `docker compose up`, `curl localhost/health` via nginx.
-- [ ] 3. Auth: register/login, access JWT (15m) + rotating refresh tokens (hashed, family reuse detection), logout, RolesGuard, onboarding guard. Check: e2e covers rotation + reuse revoking the family.
+- [x] 2. Dockerfile (api + worker from one image) + docker-compose (nginx → api, worker, redis). Check: `docker compose up`, `curl localhost/health` via nginx.
+- [x] 3. Auth: register/login, access JWT (15m) + rotating refresh tokens (hashed, family reuse detection), logout, RolesGuard, onboarding guard. Check: e2e covers rotation + reuse revoking the family.
 - [ ] 4. Profiles (creator/brand/socials/payout destination), Cloudinary signed upload, seed (30 creators, 3 brands, 1 admin).
 - [ ] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
 - [ ] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
