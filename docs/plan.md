@@ -6,19 +6,20 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 7: Campaigns + state machine** (2026-10-08)
-- `CampaignStateMachine.transition()` (`src/campaigns/state-machine.ts`) is the only way a status changes:
-  - the transition table is ported from the mobile reducer, plus revision, dispute and payout-retry paths
-  - compare-and-set on the current status, so a concurrent webhook and reconcile can't both win
-  - `funded` and `completed` require a successful FUNDING/PAYOUT transaction
-  - every move writes an `AuditLog` row and emits a `campaign` socket event to both parties
-- `POST /campaigns` (brand, from a match; one open campaign per match; the brand auto-accepts; adds a chat system message and notifies the creator).
-- `PUT /campaigns/:id/terms`: either party may edit before funding. It bumps `termsVersion` and clears the other side's acceptance.
-- `POST /campaigns/:id/accept {termsVersion}`: a stale version gets 409. Once both have accepted, the campaign moves to `awaiting_funding`.
-- `POST /campaigns/:id/start` (creator), `GET /campaigns`, `GET /campaigns/:id`. The detail includes requirements, submissions + verifications, transactions, disputes, `history` (the audit trail) and `totalPayableKobo`.
-- Fee: `PLATFORM_FEE_BPS` (default 5%), paid by the brand on top.
-- Note: about 240 ms per query from this Mac to Neon us-east-2, so the e2e timeout is 120s. **Deploy Railway in US-East** next to Neon.
-- Verified: `test/campaigns.e2e-spec.ts`.
+**Task 8: Payments (Payaza)** (2026-10-08)
+- `PaymentProvider` interface (`src/payments/provider.ts`). `PayazaProvider` was verified against the sandbox. `MockProvider` is used for tests and offline demos. Select with `PAYMENT_PROVIDER=payaza|mock`.
+- **Funding** `POST /campaigns/:id/fund {method}`:
+  - `bank_transfer` creates a Payaza Dynamic Virtual Account (Globus, 60 min)
+  - `card` opens our hosted page `GET /pay/:reference`, which runs the Payaza Checkout SDK (sandbox test card `5111111111111118`, `01/39`, CVV `100`)
+  - one live funding attempt per campaign (DB partial index). Calling it again returns the same attempt; switching method or an expired account retires the old one after a re-query
+- **Confirmation**: webhook, worker reconcile (every 60s), `POST /transactions/:id/check` and `POST /pay/:ref/check` all end in `reconcile()`. That re-queries Payaza (the source of truth), then `settle()` applies the result once (compare-and-set) and moves the campaign through the state machine.
+- **Webhook** `POST /webhooks/payaza`: stored in `WebhookEvent`, deduped on `reference:status`, signature (HMAC-SHA512 of the raw body, secret key) recorded. It is only a trigger to re-query, so a forged or duplicate webhook can't move money.
+- **Payout** `PaymentsService.payout()` (wired to brand approval in task 10): runs from `approved` or `payout_failed` → `payout_processing` → `completed` / `payout_failed`. One live payout per campaign. Uses the Payaza main account reference plus `PAYAZA_TRANSACTION_PIN`.
+- Also added: `GET /payments/banks` (NIP codes), `POST /payments/resolve-account` (Payaza name enquiry), `GET /transactions`, `GET /transactions/:id`, `POST /campaigns/:id/fund/simulate` (sandbox DVA funding).
+- Sandbox findings: name enquiry and main account (₦500k test balance) work. Payaza's `fund_test_virtual_account` returns errors for Globus/78 Finance (their sandbox), so **card checkout is the reliable demo path**. The bank-list endpoint rejects our auth, so the list is static.
+- Tests now run against a **local Postgres** (`docker run --name africre8-pg-test -p 5433:5432 ...`, `.env.test`). The Neon link from this Mac was too slow (14s connect).
+- Verified: `test/payments.e2e-spec.ts`: forged webhook doesn't fund, duplicate webhook is a no-op, one payout, a failed payout stays `payout_failed` and a retry completes it.
+- **Needs**: `PAYAZA_TRANSACTION_PIN` (set in the Payaza dashboard) before real sandbox payouts. Webhook URL after deploy (task 11).
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
@@ -31,7 +32,7 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
 - [x] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
 - [x] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
-- [ ] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.
+- [x] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.
 - [ ] 9. Verification worker: YouTube Data API + TikTok oEmbed + yt-dlp/ffmpeg frames → Claude → PASS/PARTIAL/FAIL/NEEDS_REVIEW.
 - [ ] 10. Review (approve → payout, revision, dispute) + admin API (users, campaigns, transactions, webhook replay, verifications, disputes).
 - [ ] 11. Railway deploy (api + worker + redis), migrate, seed; set Payaza webhook URL.

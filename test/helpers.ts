@@ -8,7 +8,7 @@ export const TEST_DOMAIN = '@test.africre8.dev';
 
 export async function bootApp(configure?: (app: INestApplication) => void) {
   const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  const app = mod.createNestApplication();
+  const app = mod.createNestApplication({ rawBody: true });
   configure?.(app);
   await app.init();
   return { app, http: request(app.getHttpServer()), prisma: app.get(PrismaService) };

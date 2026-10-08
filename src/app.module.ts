@@ -10,11 +10,12 @@ import { DiscoveryModule } from './discovery/discovery.module.js';
 import { MatchingModule } from './matching/matching.module.js';
 import { RealtimeGateway } from './realtime/realtime.gateway.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule],
   controllers: [HealthController, UploadsController],
   providers: [RealtimeGateway],
 })

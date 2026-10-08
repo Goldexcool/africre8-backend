@@ -330,6 +330,9 @@ model Transaction {
   status           TransactionStatus @default(pending)
   idempotencyKey   String            @unique
   payazaReference  String            @unique
+  method           String?
+  instructions     Json?
+  providerStatus   String?
   providerResponse Json?
   failureReason    String?
   createdAt        DateTime          @default(now())

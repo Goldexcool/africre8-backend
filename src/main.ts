@@ -4,7 +4,7 @@ import { AppModule } from './app.module.js';
 import { RedisIoAdapter } from './realtime/redis-io.adapter.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.enableCors();
   app.useWebSocketAdapter(new RedisIoAdapter(app));
   app.enableShutdownHooks();
