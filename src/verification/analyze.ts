@@ -55,10 +55,10 @@ For each requirement decide, from that evidence only, whether it is met. Use the
 Be literal and fair. If the evidence is too thin to judge, say so and give a low confidence instead of guessing. Hashtags, account and dates are checked separately; don't judge them.
 Your output helps a human brand reviewer; it never releases payment on its own.`;
 
-/** Speech-to-text for the post's audio (mp3 buffer). Returns '' if unavailable. */
-export async function transcribe(audio: Buffer): Promise<string> {
+/** Speech-to-text for the post's audio (mp3 buffer). null = audio unavailable ('' = no speech). */
+export async function transcribe(audio: Buffer): Promise<string | null> {
   const client = groq();
-  if (!client || !audio.length) return '';
+  if (!client || !audio.length) return null;
   try {
     const r = await client.audio.transcriptions.create({
       model: process.env.GROQ_TRANSCRIBE_MODEL ?? 'whisper-large-v3-turbo',
@@ -66,7 +66,7 @@ export async function transcribe(audio: Buffer): Promise<string> {
     });
     return r.text.trim();
   } catch {
-    return '';
+    return null;
   }
 }
 
@@ -75,14 +75,16 @@ export async function analyzeContent(input: {
   requirements: string[];
   meta: PostMetadata;
   frames: string[];
-  transcript: string;
+  transcript: string | null;
 }): Promise<{ analysis: Analysis; model: string } | { error: string }> {
   if (!input.requirements.length) return { error: 'No content requirements to check' };
   const prompt = [
     `Campaign brief: ${input.brief}`,
     `Platform: ${input.meta.platform}`,
     `Caption: ${input.meta.caption.slice(0, 2000) || '(none)'}`,
-    `Audio transcript: ${input.transcript.slice(0, 6000) || '(no speech detected)'}`,
+    input.transcript === null
+      ? 'Audio transcript: UNAVAILABLE (the audio could not be extracted). Requirements about what is said cannot be confirmed: mark them passed=false with confidence 0.2 and say the audio was unavailable.'
+      : `Audio transcript: ${input.transcript.slice(0, 6000) || '(audio present, no speech detected)'}`,
     'Requirements to check:',
     ...input.requirements.map((r, i) => `${i + 1}. ${r}`),
   ].join('\n');

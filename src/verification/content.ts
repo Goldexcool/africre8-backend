@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -7,6 +7,20 @@ import { promisify } from 'node:util';
 const run = promisify(execFile);
 const YTDLP = process.env.YTDLP_PATH ?? 'yt-dlp';
 const FFMPEG = process.env.FFMPEG_PATH ?? 'ffmpeg';
+
+let cookiesPath: string | undefined;
+/** Common yt-dlp flags. YouTube blocks datacenter IPs without cookies: set YTDLP_COOKIES (Netscape cookies.txt contents). */
+async function ytdlpBase() {
+  const args = ['--no-warnings', '--js-runtimes', 'node'];
+  if (process.env.YTDLP_COOKIES) {
+    if (!cookiesPath) {
+      cookiesPath = join(tmpdir(), 'yt-cookies.txt');
+      await writeFile(cookiesPath, process.env.YTDLP_COOKIES.replace(/\\n/g, '\n'));
+    }
+    args.push('--cookies', cookiesPath);
+  }
+  return args;
+}
 
 export type SupportedPlatform = 'tiktok' | 'youtube';
 
@@ -45,7 +59,7 @@ export async function fetchMetadata(url: string): Promise<PostMetadata> {
   const platform = detectPlatform(url);
   if (!platform) throw new Error('Unsupported platform URL');
   try {
-    const { stdout } = await run(YTDLP, ['-J', '--no-warnings', '--skip-download', url], { timeout: 60_000, maxBuffer: 20e6 });
+    const { stdout } = await run(YTDLP, [...(await ytdlpBase()), '-J', '--skip-download', url], { timeout: 60_000, maxBuffer: 20e6 });
     const j = JSON.parse(stdout);
     return {
       platform,
@@ -119,7 +133,7 @@ async function oembed(url: string, endpoint: string): Promise<PostMetadata> {
 export async function extractMedia(meta: PostMetadata, count = 6): Promise<{ frames: string[]; audio: Buffer; fromVideo: boolean }> {
   const dir = await mkdtemp(join(tmpdir(), 'afc-verify-'));
   try {
-    await run(YTDLP, ['-f', 'worst[ext=mp4]/worst', '--max-filesize', '80M', '--no-warnings', '-o', join(dir, 'v.%(ext)s'), meta.url], { timeout: 120_000 });
+    await run(YTDLP, [...(await ytdlpBase()), '-f', 'worst[ext=mp4]/worst', '--max-filesize', '80M', '-o', join(dir, 'v.%(ext)s'), meta.url], { timeout: 120_000 });
     const video = (await readdir(dir)).find((f) => f.startsWith('v.'));
     if (!video) throw new Error('download failed');
     const src = join(dir, video);

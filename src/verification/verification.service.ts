@@ -144,7 +144,7 @@ export class VerificationService {
     }
 
     evidence = {
-      transcript: transcript.slice(0, 8000),
+      transcript: transcript?.slice(0, 8000) ?? null,
       metadata: { ...meta, caption: meta.caption.slice(0, 2000) },
       stats: { views: meta.views, likes: meta.likes, comments: meta.comments, shares: meta.shares },
       frames: frames.slice(0, 6).map((f) => `data:image/jpeg;base64,${f}`),
