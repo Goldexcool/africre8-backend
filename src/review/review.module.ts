@@ -1,3 +1,4 @@
+import { wrongStage } from '../common/errors.js';
 import { Body, ConflictException, Controller, Injectable, Logger, Module, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { CampaignsModule } from '../campaigns/campaigns.module.js';
@@ -30,7 +31,7 @@ export class ReviewService {
   /** Approval is the release decision; Payaza then executes the payout. */
   async approve(brandId: string, campaignId: string) {
     const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id: campaignId } });
-    if (c.status !== 'under_review') throw new ConflictException(`Campaign is ${c.status}; only work under review can be approved`);
+    if (c.status !== 'under_review') throw wrongStage(c.status, 'Only work that is under review can be approved.');
     await this.sm.transition(campaignId, 'approved', { actorId: brandId });
     await this.notifications.notify(c.creatorId, { kind: 'review', title: 'Campaign approved', body: `“${c.title}” was approved. Releasing your payment.`, linkTo: `/campaigns/${campaignId}` });
     await this.releaseIfPossible(campaignId, brandId);
@@ -50,7 +51,7 @@ export class ReviewService {
 
   async requestRevision(brandId: string, campaignId: string, note: string) {
     const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id: campaignId } });
-    if (c.status !== 'under_review') throw new ConflictException(`Campaign is ${c.status}; revisions can only be requested on work under review`);
+    if (c.status !== 'under_review') throw wrongStage(c.status, 'Revisions can only be requested on work that is under review.');
     const used = await this.prisma.auditLog.count({ where: { entity: 'Campaign', entityId: campaignId, action: 'campaign.status', toState: 'revision_required' } });
     if (used >= c.revisionLimit) throw new ConflictException(`All ${c.revisionLimit} agreed revisions used. Approve or raise a dispute.`);
     await this.sm.transition(campaignId, 'revision_required', { actorId: brandId, meta: { note } });
@@ -60,7 +61,7 @@ export class ReviewService {
 
   async dispute(u: AuthUser, campaignId: string, reason: string, evidence: string[]) {
     const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id: campaignId } });
-    if (!DISPUTABLE.includes(c.status)) throw new ConflictException(`A ${c.status} campaign can't be disputed`);
+    if (!DISPUTABLE.includes(c.status)) throw wrongStage(c.status, "This campaign can't be disputed right now.");
     await this.prisma.$transaction(async (tx) => {
       await this.sm.transition(campaignId, 'disputed', { actorId: u.id, tx, meta: { reason } });
       await tx.dispute.create({ data: { campaignId, raisedById: u.id, reason, evidence } });

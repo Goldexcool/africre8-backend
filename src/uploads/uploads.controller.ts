@@ -12,7 +12,7 @@ export class UploadsController {
   @Post('sign')
   sign(@CurrentUser() u: AuthUser, @Body(new ZodPipe(signSchema)) { kind }: z.infer<typeof signSchema>) {
     const url = process.env.CLOUDINARY_URL;
-    if (!url) throw new ServiceUnavailableException('Uploads not configured');
+    if (!url) throw new ServiceUnavailableException("Uploads aren't available right now.");
     const { username: apiKey, password: apiSecret, hostname: cloudName } = new URL(url);
     const timestamp = Math.floor(Date.now() / 1000);
     const folder = `africre8/${kind}/${u.id}`;

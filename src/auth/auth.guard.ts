@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { ErrorCode } from '../common/errors.js';
 import { IS_PUBLIC, ROLES, type AuthUser } from '../common/auth.decorators.js';
 
 // Global guard: every route needs a valid access token unless @Public(); @Roles() narrows further.
@@ -18,16 +19,16 @@ export class AuthGuard implements CanActivate {
 
     const req = ctx.switchToHttp().getRequest();
     const token = /^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1];
-    if (!token) throw new UnauthorizedException('Missing access token');
+    if (!token) throw new UnauthorizedException({ message: 'Please sign in to continue.', code: ErrorCode.Unauthenticated });
     try {
       const payload = await this.jwt.verifyAsync<{ sub: string; role: AuthUser['role'] }>(token);
       req.user = { id: payload.sub, role: payload.role } satisfies AuthUser;
     } catch {
-      throw new UnauthorizedException('Invalid or expired access token');
+      throw new UnauthorizedException({ message: 'Your session has expired. Please sign in again.', code: ErrorCode.SessionExpired });
     }
 
     const roles = this.reflector.getAllAndOverride<AuthUser['role'][]>(ROLES, targets);
-    if (roles?.length && !roles.includes(req.user.role)) throw new ForbiddenException('Not allowed for your role');
+    if (roles?.length && !roles.includes(req.user.role)) throw new ForbiddenException({ message: "You don't have access to this.", code: ErrorCode.WrongRole });
     return true;
   }
 }

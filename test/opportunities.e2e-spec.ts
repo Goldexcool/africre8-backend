@@ -31,6 +31,13 @@ describe('Campaign briefs, invitations, applications (e2e)', () => {
     const pub = await http.post('/opportunities').set(brand.auth).send(brief({ applicationLimit: 1 })).expect(201);
     const priv = await http.post('/opportunities').set(brand.auth).send(brief({ title: 'Private launch', visibility: 'PRIVATE' })).expect(201);
 
+    // every response that returns a brief carries the same money fields (naira and kobo)
+    expect(pub.body.budgetNgn).toBe(200000);
+    expect(pub.body.budgetKobo).toBe(20000000);
+    const closed = await http.post(`/opportunities/${priv.body.id}/close`).set(brand.auth).expect(201);
+    expect(closed.body.budgetNgn).toBe(200000);
+    await http.post(`/opportunities/${priv.body.id}/publish`).set(brand.auth).expect(201);
+
     const feed = await http.get('/opportunities/feed').set(a.auth).expect(200);
     const ids = feed.body.map((o: { id: string }) => o.id);
     expect(ids).toContain(pub.body.id);
@@ -93,10 +100,12 @@ describe('Campaign briefs, invitations, applications (e2e)', () => {
     const { http } = ctx;
     const brand = await makeUser(http, 'BRAND');
     const c = await makeUser(http, 'CREATOR');
-    let disc = await http.get('/discover?limit=50').set(brand.auth).expect(200);
-    expect(disc.body.items.some((x: { id: string }) => x.id === c.id)).toBe(true);
+    // a unique category isolates this creator from however many others the database holds
+    const category = `Niche ${Date.now()}`;
+    await http.put('/profiles/creator').set(c.auth).send({ displayName: 'Test Creator', category }).expect(200);
+    const find = async () => (await http.get('/discover').query({ category }).set(brand.auth).expect(200)).body.items.some((x: { id: string }) => x.id === c.id);
+    expect(await find()).toBe(true);
     await http.put('/profiles/creator').set(c.auth).send({ displayName: 'Test Creator', openToInvites: false }).expect(200);
-    disc = await http.get('/discover?limit=50').set(brand.auth).expect(200);
-    expect(disc.body.items.some((x: { id: string }) => x.id === c.id)).toBe(false);
+    expect(await find()).toBe(false);
   });
 });

@@ -3,9 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { User } from '../generated/prisma/client.js';
+import { ErrorCode } from '../common/errors.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OtpService } from './otp.service.js';
 
+const SESSION_EXPIRED = { message: 'Your session has expired. Please sign in again.', code: ErrorCode.SessionExpired };
+const SUSPENDED = { message: 'This account has been suspended. Please contact support.', code: ErrorCode.AccountSuspended };
 const hash = (token: string) => createHash('sha256').update(token).digest('hex');
 
 @Injectable()
@@ -21,7 +24,7 @@ export class AuthService {
     const exists = await this.prisma.user.findFirst({
       where: { OR: [{ email }, ...(input.phone ? [{ phone: input.phone }] : [])] },
     });
-    if (exists) throw new ConflictException('Email or phone already registered');
+    if (exists) throw new ConflictException({ message: 'An account with this email or phone already exists.', code: ErrorCode.Conflict });
     const user = await this.prisma.user.create({
       data: { email, phone: input.phone, role: input.role, passwordHash: await bcrypt.hash(input.password, 10) },
     });
@@ -32,22 +35,22 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException({ message: 'Incorrect email or password.', code: ErrorCode.InvalidCredentials });
     }
-    if (user.status === 'SUSPENDED') throw new ForbiddenException('Account suspended');
+    if (user.status === 'SUSPENDED') throw new ForbiddenException(SUSPENDED);
     return this.issue(user);
   }
 
   /** Rotate: old token is revoked and replaced. Re-using a revoked token kills its whole family. */
   async refresh(token: string) {
     const row = await this.prisma.refreshToken.findUnique({ where: { tokenHash: hash(token) }, include: { user: true } });
-    if (!row) throw new UnauthorizedException('Invalid refresh token');
+    if (!row) throw new UnauthorizedException(SESSION_EXPIRED);
     if (row.revokedAt) {
       await this.revokeFamily(row.family);
-      throw new UnauthorizedException('Refresh token reused; session revoked');
+      throw new UnauthorizedException(SESSION_EXPIRED);
     }
-    if (row.expiresAt < new Date()) throw new UnauthorizedException('Refresh token expired');
-    if (row.user.status === 'SUSPENDED') throw new ForbiddenException('Account suspended');
+    if (row.expiresAt < new Date()) throw new UnauthorizedException(SESSION_EXPIRED);
+    if (row.user.status === 'SUSPENDED') throw new ForbiddenException(SUSPENDED);
 
     // Claim the token atomically so two concurrent refreshes cannot both rotate it.
     const claimed = await this.prisma.refreshToken.updateMany({
@@ -56,7 +59,7 @@ export class AuthService {
     });
     if (claimed.count !== 1) {
       await this.revokeFamily(row.family);
-      throw new UnauthorizedException('Refresh token reused; session revoked');
+      throw new UnauthorizedException(SESSION_EXPIRED);
     }
     const tokens = await this.issue(row.user, row.family);
     await this.prisma.refreshToken.update({ where: { id: row.id }, data: { replacedById: tokens.refreshTokenId } });

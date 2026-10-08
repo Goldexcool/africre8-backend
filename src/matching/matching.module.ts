@@ -68,7 +68,7 @@ export class MatchingService {
     const isParty = interest && (interest.brandId === userId || interest.creatorId === userId);
     if (!interest || !isParty) throw new NotFoundException('Invitation not found');
     if (interest.senderId === userId) throw new ConflictException('Waiting for the other side to respond');
-    if (interest.status !== 'PENDING') throw new ConflictException(`Already ${interest.status.toLowerCase()}`);
+    if (interest.status !== 'PENDING') throw new ConflictException(`This was already ${interest.status.toLowerCase()}.`);
     if (interest.expiresAt < new Date()) {
       await this.prisma.interest.update({ where: { id: interestId }, data: { status: 'EXPIRED' } });
       throw new ConflictException('This invitation expired');
@@ -171,7 +171,7 @@ export class MatchingService {
   async assertMember(userId: string, conversationId: string) {
     const conv = await this.prisma.conversation.findUnique({ where: { id: conversationId }, include: { match: true } });
     if (!conv) throw new NotFoundException('Conversation not found');
-    if (conv.match.brandId !== userId && conv.match.creatorId !== userId) throw new ForbiddenException('Not a member of this match');
+    if (conv.match.brandId !== userId && conv.match.creatorId !== userId) throw new ForbiddenException("You're not part of this conversation.");
     return conv;
   }
 

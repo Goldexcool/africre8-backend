@@ -58,3 +58,47 @@ npm run start:dev
 - [x] 13. Campaign briefs (`Opportunity`): PUBLIC (listed to creators, `applicationLimit` cap) / PRIVATE (invite-only), DRAFT/PUBLISHED/CLOSED. `POST/PUT /opportunities`, `/opportunities/mine` (counts + slots left), `/opportunities/feed` (creator), `/opportunities/:id/apply`, publish/close.
 - [x] 14. Interests and swipes scoped per brief (`scopeKey`); an invite/application carries `opportunityId` + `message`. `POST /interests/bulk` (stack send). `/interests/:id/respond` answered by the receiver (creator for invitations, brand for applications). Accepting creates or reuses the connection, records the brief, and posts the note as the first message.
 - [x] 15. Inbox data: `/matches` returns the brief, latest campaign stage, last message and unread count; `POST /conversations/:id/read`. Creators' `openToInvites` hides them from Discover. Verified: `test/opportunities.e2e-spec.ts`, 19/19 e2e.
+
+---
+
+## Mobile alignment (branch `feat/mobile-alignment`)
+- [x] 16. Global exception filter, uniform `{ statusCode, message, code, errors? }`, no 500 leaks.
+- [x] 17. User-friendly wording for technical errors; stable error `code`s.
+- [x] 18. e2e tests green after message changes.
+
+### Still open in the backend (found in review)
+- `app.enableCors()` is fully open; no `helmet`.
+- No request logging / structured logs.
+- No push notifications (notifications are DB + socket only); no device-token endpoint.
+- No endpoints for: account deletion, change password while signed in, update email/phone.
+- Admin API exists but there is no admin web UI.
+- YouTube verification blocked on datacenter IPs (needs `YTDLP_COOKIES`).
+- Payaza payout account must be set up in the Payaza dashboard before real payouts; confirm `PAYMENT_PROVIDER=payaza` (default is `mock`) on Railway.
+- [x] 19. Rate limiting on auth/OTP endpoints (login, register, forgot-password, verify-email, verify-reset-code, reset-password, refresh). Generous enough for the app's retries and QA runs.
+
+### Mobile alignment: backend work done (2026-10-08, branch `feat/mobile-alignment`, uncommitted)
+**Error contract.** Every error is now `{ statusCode, message, code, errors? }` (`src/common/all-exceptions.filter.ts`, registered as `APP_FILTER`).
+- `message` is always safe to show a user. 5xx and unexpected errors return `An unknown error occurred, try again.` (real error logged server-side only). Nest defaults ("Forbidden", "Cannot GET /x") are replaced.
+- `code` is stable and listed in `src/common/errors.ts` (`ErrorCode`): UNAUTHENTICATED, SESSION_EXPIRED, INVALID_CREDENTIALS, ACCOUNT_SUSPENDED, FORBIDDEN, WRONG_ROLE, ONBOARDING_REQUIRED, VALIDATION_ERROR, NOT_FOUND, CONFLICT, CAMPAIGN_WRONG_STAGE, CAMPAIGN_CHANGED, PAYMENT_PENDING, RATE_LIMITED, INVALID_CODE, INTERNAL_ERROR.
+- Validation errors (`ZodPipe`) return `code: VALIDATION_ERROR` and `errors: [{ path, message }]` per field.
+- Campaign stage conflicts use `wrongStage()` (plain wording such as "This campaign is under review, so you can't do that right now.") instead of raw status names.
+- Token reuse / invalid / expired refresh tokens all say `Your session has expired. Please sign in again.` (`SESSION_EXPIRED`).
+- Sockets keep their own `WsException` handling.
+
+**Rate limiting.** `@nestjs/throttler` on `AuthController` (all auth endpoints except `GET /auth/me`): per-IP, 60s window, limit from env `RATE_LIMIT_PER_MINUTE` (default 20). Skipped when `NODE_ENV=test`. `main.ts` sets `trust proxy` so Railway's proxy IP is not used for every client. Exceeding it returns 429 `RATE_LIMITED`.
+
+**Tests.** `test/errors.e2e-spec.ts` (6 tests: shapes, field errors, no framework text, role, token reuse, 429). Old assertions on technical wording in campaigns/payments e2e updated. `npm run test:e2e` fixed for the installed dotenv-cli (`dotenv run -f .env.test -- ...`); it needs `SEED_ADMIN_PASSWORD` in the environment for the golden-path test, with the DB seeded.
+
+**Result:** e2e 25/25 on the local Docker Postgres (`.env.test`, never production).
+
+**Deploy notes:** set `RATE_LIMIT_PER_MINUTE` on Railway if you want a value other than 20. No migration needed.
+
+**Seed change (mobile alignment):** `prisma/seed.ts` now sets `emailVerifiedAt` on demo accounts (create and update) because the mobile app requires a verified email. The server itself still does not enforce email verification (decision: app-only gate). Re-run the seed on existing databases.
+
+### Planned for mobile Phase D (see frontend/docs/plan.md)
+- [x] 20. `GET /meta/filters` (categories, locations, platforms, availability, NGN budget presets) with Cache-Control + ETag.
+- [ ] 21. `POST /uploads/sign`: Cloudflare R2 presigned PUT when `CLOUDINARY_URL` is unset (env `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, public base URL TBD).
+- [x] 22. Not needed: `/auth/me` already returns `payoutDestination` (confirmed in the D1 audit).
+- [ ] 23. Message pagination for `GET /conversations/:id/messages`, if needed.
+
+**Mobile Phase D (D3):** `POST/PUT /opportunities` and `POST /opportunities/:id/publish|close` now return the same view as list/detail (adds `budgetNgn` next to `budgetKobo`); e2e asserts it. The "creators can turn off invitations" e2e test no longer depends on how many creators exist.
