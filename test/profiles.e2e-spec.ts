@@ -45,6 +45,6 @@ describe('Profiles (e2e)', () => {
       .expect(200);
     const me = await http.get('/auth/me').set(auth).expect(200);
     expect(me.body.onboardedAt).toBeTruthy();
-    await http.put('/profiles/payout-destination').set(auth).send({ bankCode: '058', bankName: 'GTBank', accountNumber: '123', accountName: 'X Y' }).expect(400);
+    await http.put('/profiles/payout-destination').set(auth).send({ bankCode: '058', bankName: 'GTBank', accountNumber: '123' }).expect(400);
   });
 });

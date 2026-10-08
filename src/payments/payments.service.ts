@@ -262,6 +262,11 @@ export class PaymentsService {
 
   // ---------- Queries ----------
 
+  async approvedAwaitingPayout(creatorId: string) {
+    const rows = await this.prisma.campaign.findMany({ where: { creatorId, status: { in: ['approved', 'payout_failed'] } }, select: { id: true } });
+    return rows.map((r) => r.id);
+  }
+
   async forUser(userId: string, role: string) {
     const rows = await this.prisma.transaction.findMany({
       where: role === 'ADMIN' ? {} : { campaign: role === 'BRAND' ? { brandId: userId } : { creatorId: userId } },

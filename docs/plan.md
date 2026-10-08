@@ -6,23 +6,27 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 8: Payments (Payaza)** (2026-10-08)
-- `PaymentProvider` interface (`src/payments/provider.ts`). `PayazaProvider` was verified against the sandbox. `MockProvider` is used for tests and offline demos. Select with `PAYMENT_PROVIDER=payaza|mock`.
-- **Funding** `POST /campaigns/:id/fund {method}`:
-  - `bank_transfer` creates a Payaza Dynamic Virtual Account (Globus, 60 min)
-  - `card` opens our hosted page `GET /pay/:reference`, which runs the Payaza Checkout SDK (sandbox test card `5111111111111118`, `01/39`, CVV `100`)
-  - one live funding attempt per campaign (DB partial index). Calling it again returns the same attempt; switching method or an expired account retires the old one after a re-query
-- **Confirmation**: webhook, worker reconcile (every 60s), `POST /transactions/:id/check` and `POST /pay/:ref/check` all end in `reconcile()`. That re-queries Payaza (the source of truth), then `settle()` applies the result once (compare-and-set) and moves the campaign through the state machine.
-- **Webhook** `POST /webhooks/payaza`: stored in `WebhookEvent`, deduped on `reference:status`, signature (HMAC-SHA512 of the raw body, secret key) recorded. It is only a trigger to re-query, so a forged or duplicate webhook can't move money.
-- **Payout** `PaymentsService.payout()` (wired to brand approval in task 10): runs from `approved` or `payout_failed` → `payout_processing` → `completed` / `payout_failed`. One live payout per campaign. Uses the Payaza main account reference plus `PAYAZA_TRANSACTION_PIN`.
-- Also added: `GET /payments/banks` (NIP codes), `POST /payments/resolve-account` (Payaza name enquiry), `GET /transactions`, `GET /transactions/:id`, `POST /campaigns/:id/fund/simulate` (sandbox DVA funding).
-- Sandbox findings: name enquiry and main account (₦500k test balance) work. Payaza's `fund_test_virtual_account` returns errors for Globus/78 Finance (their sandbox), so **card checkout is the reliable demo path**. The bank-list endpoint rejects our auth, so the list is static.
-- Tests now run against a **local Postgres** (`docker run --name africre8-pg-test -p 5433:5432 ...`, `.env.test`). The Neon link from this Mac was too slow (14s connect).
-- Verified: `test/payments.e2e-spec.ts`: forged webhook doesn't fund, duplicate webhook is a no-op, one payout, a failed payout stays `payout_failed` and a retry completes it.
-- **Needs**: `PAYAZA_TRANSACTION_PIN` (set in the Payaza dashboard) before real sandbox payouts. Webhook URL after deploy (task 11).
+**Tasks 9, 10, 12: Verification, review/admin, golden path** (2026-10-08)
+- **Submissions**: `POST /campaigns/:id/submissions` (creator).
+  - The link's platform must match the deliverable; a wrong platform gets 400. Late submissions are flagged.
+  - Earlier submissions are kept as `superseded` history.
+  - Once every deliverable is covered, the campaign moves to `submitted` and the brand is notified. One BullMQ `verify` job is queued per submission. `POST .../submissions/:sid/reverify`.
+- **Verification worker** (`src/verification`, no Claude):
+  1. metadata via yt-dlp, falling back to YouTube Data API or oEmbed
+  2. objective checks: post is public, posted from the creator's handle, published after the agreement, hashtags, mentions
+  3. **ffmpeg splits the video into 6 frames and extracts the audio**
+  4. **Groq Whisper (`whisper-large-v3-turbo`) transcribes the audio** to catch spoken mentions and talking points
+  5. **Azure OpenAI `gpt-5.3-chat`** checks the frames, transcript and caption against the agreement (strict JSON schema)
+  6. if there are no frames or Azure fails, Groq `gpt-oss-120b` checks text only, capped at 0.5 confidence, which means NEEDS_REVIEW
+  - `verdictFor()`: account/publish failure is FAIL; anything uncertain is NEEDS_REVIEW; all passing is PASS; otherwise PARTIAL.
+  - Evidence (metadata, stats, transcript, frames) is stored on `VerificationRun`, so it survives the post being deleted. Once every live submission is verified, the campaign moves to `under_review` and the brand is notified.
+- **Review** (`src/review`): `POST /campaigns/:id/approve` (brand, only from `under_review`) releases the payout, or asks the creator for bank details first. `POST .../revision {note}` is limited by `revisionLimit`. `POST .../dispute` (either party) pauses payout and notifies the other party and admins.
+- Payout account names now come from Payaza name enquiry, not the client. Saving bank details auto-releases approved or `payout_failed` campaigns.
+- **Admin API** (`/admin/*`, ADMIN role): overview, users (suspend/unsuspend/verify; suspending revokes sessions), campaigns, transactions, webhooks + **replay**, verifications, disputes + resolve (`release|revision|resume`), audit.
+- Verified: `test/golden-path.e2e-spec.ts` covers the PRD end-to-end flow up to completed, the revision limit, kept history, dispute pausing approval, admin release then completion, and webhook replay leaving exactly one payout. 14/14 e2e tests pass.
 
 ## Stack
-NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
+NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Azure OpenAI (vision) + Groq (Whisper) · Docker + nginx · Railway.
 
 ## Tasks
 - [x] 1. Scaffold Nest + Prisma (Neon) + env validation + `/health`. Push to GitHub.
@@ -33,10 +37,11 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
 - [x] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
 - [x] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.
-- [ ] 9. Verification worker: YouTube Data API + TikTok oEmbed + yt-dlp/ffmpeg frames → Claude → PASS/PARTIAL/FAIL/NEEDS_REVIEW.
-- [ ] 10. Review (approve → payout, revision, dispute) + admin API (users, campaigns, transactions, webhook replay, verifications, disputes).
+- [x] 9. Verification worker: YouTube Data API + TikTok oEmbed + yt-dlp/ffmpeg frames → Claude → PASS/PARTIAL/FAIL/NEEDS_REVIEW.
+- [x] 10. Review (approve → payout, revision, dispute) + admin API (users, campaigns, transactions, webhook replay, verifications, disputes).
+- [ ] 10b. Email via Brevo: signup verification code, forgot/reset password (6-digit codes, hashed, 15-min expiry), money emails (funded, payout sent/failed).
 - [ ] 11. Railway deploy (api + worker + redis), migrate, seed; set Payaza webhook URL.
-- [ ] 12. Golden-path e2e (`test/golden-path.e2e-spec.ts`, MockProvider): duplicate webhook ⇒ one payout; failed payout stays `payout_failed`.
+- [x] 12. Golden-path e2e (`test/golden-path.e2e-spec.ts`, MockProvider): duplicate webhook ⇒ one payout; failed payout stays `payout_failed`.
 
 Mobile tasks (wire to API, full-screen swipe, UI/animation overhaul, admin web) are tracked in the mobile repo.
 

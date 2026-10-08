@@ -61,9 +61,10 @@ describe('Payments (e2e, mock provider)', () => {
     await http.post(`/campaigns/${campaignId}/start`).set(creator.auth).expect(201);
     await toApproved(campaignId);
 
-    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0123456789', accountName: 'Test Creator' }).expect(200);
+    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0123456789' }).expect(200);
+    // Adding bank details to an approved campaign releases the payout automatically.
     const payouts = ctx.app.get(PaymentsService);
-    const p = await payouts.payout(campaignId);
+    const p = await ctx.prisma.transaction.findFirstOrThrow({ where: { campaignId, kind: 'PAYOUT' } });
     expect(p.status).toBe('processing');
     await expect(payouts.payout(campaignId)).rejects.toThrow(/Campaign is payout_processing|already in progress/);
 
@@ -89,15 +90,13 @@ describe('Payments (e2e, mock provider)', () => {
     await payments.reconcileAll(0);
     await toApproved(campaignId);
 
-    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0000000000', accountName: 'Bad Account' }).expect(200);
-    const p = await payments.payout(campaignId);
-    await payments.reconcile(p.id);
+    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0000000000' }).expect(200);
+    await payments.reconcileAll(0);
     let c = await http.get(`/campaigns/${campaignId}`).set(brand.auth).expect(200);
     expect(c.body.status).toBe('payout_failed');
 
-    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0123456789', accountName: 'Good Account' }).expect(200);
-    const retry = await payments.payout(campaignId);
-    await payments.reconcile(retry.id);
+    await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0123456789' }).expect(200);
+    await payments.reconcileAll(0); // new bank details triggered an automatic retry
     c = await http.get(`/campaigns/${campaignId}`).set(brand.auth).expect(200);
     expect(c.body.status).toBe('completed');
   });

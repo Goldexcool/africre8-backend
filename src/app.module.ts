@@ -11,11 +11,14 @@ import { MatchingModule } from './matching/matching.module.js';
 import { RealtimeGateway } from './realtime/realtime.gateway.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { VerificationModule } from './verification/verification.module.js';
+import { ReviewModule } from './review/review.module.js';
+import { AdminModule } from './admin/admin.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule],
   controllers: [HealthController, UploadsController],
   providers: [RealtimeGateway],
 })

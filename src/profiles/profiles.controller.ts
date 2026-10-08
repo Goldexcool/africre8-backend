@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Put } from '@nestjs/common';
 import { CurrentUser, Roles, type AuthUser } from '../common/auth.decorators.js';
 import { ZodPipe } from '../common/zod.pipe.js';
+import { PaymentsService } from '../payments/payments.service.js';
+import { ReviewService } from '../review/review.module.js';
 import { ProfilesService } from './profiles.service.js';
 import {
   brandSchema,
@@ -13,7 +15,11 @@ import {
 
 @Controller()
 export class ProfilesController {
-  constructor(private readonly profiles: ProfilesService) {}
+  constructor(
+    private readonly profiles: ProfilesService,
+    private readonly payments: PaymentsService,
+    private readonly review: ReviewService,
+  ) {}
 
   @Roles('CREATOR')
   @Put('profiles/creator')
@@ -29,8 +35,13 @@ export class ProfilesController {
 
   @Roles('CREATOR')
   @Put('profiles/payout-destination')
-  payout(@CurrentUser() u: AuthUser, @Body(new ZodPipe(payoutSchema)) body: PayoutInput) {
-    return this.profiles.setPayoutDestination(u.id, body);
+  async payout(@CurrentUser() u: AuthUser, @Body(new ZodPipe(payoutSchema)) body: PayoutInput) {
+    const { accountName } = await this.payments.provider.resolveAccount(body.bankCode, body.accountNumber);
+    const dest = await this.profiles.setPayoutDestination(u.id, { ...body, accountName });
+    // Approved campaigns waiting on bank details get paid now.
+    const waiting = await this.payments.approvedAwaitingPayout(u.id);
+    for (const id of waiting) await this.review.releaseIfPossible(id, u.id);
+    return dest;
   }
 
   @Get('creators/:id')

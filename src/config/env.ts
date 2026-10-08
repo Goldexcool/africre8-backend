@@ -12,7 +12,9 @@ const schema = z.object({
   PAYAZA_PUBLIC_KEY: z.string().optional(),
   PAYAZA_SECRET_KEY: z.string().optional(),
   PAYAZA_ENV: z.enum(['test', 'live']).default('test'),
-  ANTHROPIC_API_KEY: z.string().optional(),
+  AZURE_OPENAI_ENDPOINT: z.string().url().optional(),
+  AZURE_OPENAI_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
   YOUTUBE_API_KEY: z.string().optional(),
   CLOUDINARY_URL: z.string().optional(),
 });

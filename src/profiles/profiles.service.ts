@@ -38,7 +38,8 @@ export class ProfilesService {
     return p;
   }
 
-  setPayoutDestination(userId: string, input: PayoutInput) {
+  /** accountName comes from the provider's name enquiry, never from the client. */
+  setPayoutDestination(userId: string, input: PayoutInput & { accountName: string }) {
     return this.prisma.payoutDestination.upsert({ where: { userId }, create: { userId, ...input }, update: input });
   }
 
