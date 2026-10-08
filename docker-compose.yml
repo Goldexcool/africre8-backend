@@ -17,9 +17,9 @@ services:
 
   worker:
     build: .
-    command: ["node", "dist/worker.js"]
     env_file: .env
     environment:
+      PROCESS: worker
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
     depends_on: [redis, api]

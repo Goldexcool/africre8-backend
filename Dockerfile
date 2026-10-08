@@ -22,5 +22,5 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/package.json /app/prisma.config.ts ./
 EXPOSE 3000
-# Default = API. Worker overrides the command with: node dist/worker.js
-CMD ["sh", "-c", "for i in 1 2 3 4 5; do npx prisma migrate deploy && break; echo migrate retry $i; sleep 5; done; exec node dist/main.js"]
+# PROCESS=worker runs the BullMQ worker; anything else runs migrations then the API.
+CMD ["sh", "-c", "if [ \"$PROCESS\" = worker ]; then exec node dist/worker.js; fi; for i in 1 2 3 4 5; do npx prisma migrate deploy && break; echo migrate retry $i; sleep 5; done; exec node dist/main.js"]
