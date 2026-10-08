@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { z } from 'zod';
 import { CurrentUser, Public, type AuthUser } from '../common/auth.decorators.js';
 import { ZodPipe } from '../common/zod.pipe.js';
@@ -21,6 +22,7 @@ const resetSchema = checkSchema.extend({ password: z.string().min(8) });
 const strip = <T extends { refreshTokenId: string }>(t: T) => ({ ...t, refreshTokenId: undefined });
 
 @Controller('auth')
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
@@ -84,6 +86,7 @@ export class AuthController {
     await this.auth.resetPassword(b.email, b.code, b.password);
   }
 
+  @SkipThrottle()
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return this.auth.me(user.id);

@@ -31,20 +31,20 @@ export class OpportunitiesService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  create(brandId: string, b: BriefInput) {
+  async create(brandId: string, b: BriefInput) {
     const { budgetNgn, ...rest } = b;
-    return this.prisma.opportunity.create({ data: { ...rest, brandId, budgetKobo: budgetNgn * 100, applicationLimit: b.applicationLimit ?? null } });
+    return this.view(await this.prisma.opportunity.create({ data: { ...rest, brandId, budgetKobo: budgetNgn * 100, applicationLimit: b.applicationLimit ?? null } }));
   }
 
   async update(brandId: string, id: string, b: BriefInput) {
     await this.owned(brandId, id);
     const { budgetNgn, ...rest } = b;
-    return this.prisma.opportunity.update({ where: { id }, data: { ...rest, budgetKobo: budgetNgn * 100, applicationLimit: b.applicationLimit ?? null } });
+    return this.view(await this.prisma.opportunity.update({ where: { id }, data: { ...rest, budgetKobo: budgetNgn * 100, applicationLimit: b.applicationLimit ?? null } }));
   }
 
   async setStatus(brandId: string, id: string, status: 'PUBLISHED' | 'CLOSED') {
     await this.owned(brandId, id);
-    return this.prisma.opportunity.update({ where: { id }, data: { status } });
+    return this.view(await this.prisma.opportunity.update({ where: { id }, data: { status } }));
   }
 
   /** Brand: its briefs with application/invitation counts and how many slots remain. */

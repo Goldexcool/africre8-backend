@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from './config/env.js';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -16,12 +17,14 @@ import { VerificationModule } from './verification/verification.module.js';
 import { ReviewModule } from './review/review.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { OpportunitiesModule } from './opportunities/opportunities.module.js';
+import { MetaModule } from './meta/meta.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
+import { AllExceptionsFilter } from './common/all-exceptions.filter.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule, OpportunitiesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule, OpportunitiesModule, MetaModule],
   controllers: [HealthController, UploadsController],
-  providers: [RealtimeGateway],
+  providers: [RealtimeGateway, { provide: APP_FILTER, useClass: AllExceptionsFilter }],
 })
 export class AppModule {}

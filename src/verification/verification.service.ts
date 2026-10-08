@@ -1,4 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
+import { wrongStage } from '../common/errors.js';
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { CampaignStateMachine } from '../campaigns/state-machine.js';
@@ -30,12 +31,12 @@ export class VerificationService {
   async submit(creatorId: string, campaignId: string, input: { requirementId: string; contentUrl: string; notes?: string; evidenceUrls?: string[] }) {
     const c = await this.prisma.campaign.findUnique({ where: { id: campaignId }, include: { requirements: true } });
     if (!c || c.creatorId !== creatorId) throw new NotFoundException('Campaign not found');
-    if (!(SUBMITTABLE as readonly string[]).includes(c.status)) throw new ConflictException(`Campaign is ${c.status}; work can't be submitted now`);
+    if (!(SUBMITTABLE as readonly string[]).includes(c.status)) throw wrongStage(c.status, "Work can't be submitted for this campaign right now.");
     const req = c.requirements.find((r) => r.id === input.requirementId);
     if (!req) throw new BadRequestException('Unknown deliverable');
     const platform = detectPlatform(input.contentUrl);
     if (req.platform && ['tiktok', 'youtube'].includes(req.platform) && platform !== req.platform) {
-      throw new BadRequestException(`This deliverable needs a ${req.platform} link`);
+      throw new BadRequestException(`This deliverable needs a ${req.platform} link.`);
     }
 
     const submission = await this.prisma.$transaction(async (tx) => {

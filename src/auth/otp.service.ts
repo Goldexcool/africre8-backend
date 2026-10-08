@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { randomInt } from 'node:crypto';
 import type { OtpPurpose } from '../generated/prisma/client.js';
+import { ErrorCode } from '../common/errors.js';
 import { MailService } from '../mail/mail.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -34,7 +35,7 @@ export class OtpService {
   /** Checks a code; `consume` burns it. Wrong guesses count against a small attempt limit. */
   async check(userId: string, purpose: OtpPurpose, code: string, consume: boolean) {
     const otp = await this.prisma.otpCode.findFirst({ where: { userId, purpose, consumedAt: null }, orderBy: { createdAt: 'desc' } });
-    const fail = () => new BadRequestException('That code is invalid or expired');
+    const fail = () => new BadRequestException({ message: 'That code is incorrect or has expired.', code: ErrorCode.InvalidCode });
     if (!otp || otp.expiresAt < new Date() || otp.attempts >= MAX_ATTEMPTS) throw fail();
     if (!(await bcrypt.compare(code, otp.codeHash))) {
       await this.prisma.otpCode.update({ where: { id: otp.id }, data: { attempts: { increment: 1 } } });

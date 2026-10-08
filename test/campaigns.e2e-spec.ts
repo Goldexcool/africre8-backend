@@ -38,9 +38,9 @@ describe('Campaigns (e2e)', () => {
     expect(accepted.body.history.map((h: { action: string }) => h.action)).toContain('campaign.status');
 
     // Cannot be marked funded without a successful Payaza funding transaction.
-    await expect(ctx.app.get(CampaignStateMachine).transition(id, 'funded')).rejects.toThrow(/Funding not confirmed/);
+    await expect(ctx.app.get(CampaignStateMachine).transition(id, 'funded')).rejects.toThrow(/still waiting for the payment provider/);
     // Cannot skip ahead.
-    await expect(ctx.app.get(CampaignStateMachine).transition(id, 'completed')).rejects.toThrow(/Cannot move/);
+    await expect(ctx.app.get(CampaignStateMachine).transition(id, 'completed')).rejects.toThrow(/waiting to be funded/);
     await http.post(`/campaigns/${id}/start`).set(creator.auth).expect(409);
   });
 });

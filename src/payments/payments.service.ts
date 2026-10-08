@@ -1,3 +1,4 @@
+import { ErrorCode, wrongStage } from '../common/errors.js';
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { CampaignStateMachine } from '../campaigns/state-machine.js';
@@ -28,7 +29,7 @@ export class PaymentsService {
   async fund(brandId: string, campaignId: string, method: 'bank_transfer' | 'card') {
     const c = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
     if (!c || c.brandId !== brandId) throw new NotFoundException('Campaign not found');
-    if (c.status !== 'awaiting_funding') throw new ConflictException(`Campaign is ${c.status}`);
+    if (c.status !== 'awaiting_funding') throw wrongStage(c.status);
 
     const live = await this.prisma.transaction.findFirst({ where: { campaignId, kind: 'FUNDING', status: { in: ['pending', 'processing'] } } });
     if (live) {
@@ -84,7 +85,7 @@ export class PaymentsService {
       where: { campaignId, kind: 'FUNDING', status: 'pending', method: 'bank_transfer', campaign: { brandId } },
     });
     if (!tx) throw new NotFoundException('No pending bank transfer for this campaign');
-    if (!this.provider.simulateBankTransfer) throw new BadRequestException('Simulation not supported');
+    if (!this.provider.simulateBankTransfer) throw new BadRequestException("Test transfers aren't available right now.");
     const r = await this.provider.simulateBankTransfer(tx.payazaReference, tx.instructions as BankTransferInstructions);
     if (r.ok) await this.reconcile(tx.id);
     return { ...r, transaction: this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } })) };
@@ -96,7 +97,7 @@ export class PaymentsService {
   async payout(campaignId: string, actorId?: string) {
     const c = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
     if (!c) throw new NotFoundException('Campaign not found');
-    if (!['approved', 'payout_failed'].includes(c.status)) throw new ConflictException(`Campaign is ${c.status}`);
+    if (!['approved', 'payout_failed'].includes(c.status)) throw wrongStage(c.status);
     const dest = await this.prisma.payoutDestination.findUnique({ where: { userId: c.creatorId } });
     if (!dest) throw new ConflictException('Creator has no payout destination yet');
 
@@ -293,7 +294,7 @@ export class PaymentsService {
   }
 
   assertOwnsCampaign(userId: string, campaign: { brandId: string }) {
-    if (campaign.brandId !== userId) throw new ForbiddenException();
+    if (campaign.brandId !== userId) throw new ForbiddenException({ message: 'Only the brand that owns this campaign can do that.', code: ErrorCode.Forbidden });
   }
 
   view(t: Transaction) {

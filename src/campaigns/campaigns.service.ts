@@ -1,4 +1,5 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ErrorCode, wrongStage } from '../common/errors.js';
 import type { AuthUser } from '../common/auth.decorators.js';
 import type { CampaignStatus } from '../generated/prisma/client.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
@@ -101,7 +102,7 @@ export class CampaignsService {
   /** Both parties must accept the *same* terms version; then the campaign awaits funding. */
   async accept(u: AuthUser, id: string, termsVersion: number) {
     const c = await this.owned(u, id);
-    if (c.status !== 'pending_agreement') throw new ConflictException(`Campaign is ${c.status}`);
+    if (c.status !== 'pending_agreement') throw wrongStage(c.status);
     if (c.termsVersion !== termsVersion) throw new ConflictException('Terms changed; review the latest version');
 
     const updated = await this.prisma.campaign.update({
@@ -118,7 +119,7 @@ export class CampaignsService {
 
   async start(u: AuthUser, id: string) {
     const c = await this.owned(u, id);
-    if (u.id !== c.creatorId) throw new ForbiddenException();
+    if (u.id !== c.creatorId) throw new ForbiddenException({ message: 'Only the creator can do that.', code: ErrorCode.Forbidden });
     await this.sm.transition(id, 'in_progress', { actorId: u.id });
     return this.detail(u, id);
   }

@@ -42,8 +42,8 @@ async function upsertUser(email: string, password: string | undefined, role: 'BR
   const passwordHash = await bcrypt.hash(password ?? randomBytes(24).toString('hex'), 10);
   return prisma.user.upsert({
     where: { email },
-    create: { email, passwordHash, role, onboardedAt: new Date(), verificationStatus: 'VERIFIED' },
-    update: { passwordHash, role },
+    create: { email, passwordHash, role, onboardedAt: new Date(), emailVerifiedAt: new Date(), verificationStatus: 'VERIFIED' },
+    update: { passwordHash, role, emailVerifiedAt: new Date() }, // demo accounts skip the email-code step the app now requires
   });
 }
 

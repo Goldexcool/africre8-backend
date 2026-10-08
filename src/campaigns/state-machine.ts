@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ErrorCode, wrongStage } from '../common/errors.js';
 import type { CampaignStatus, Prisma } from '../generated/prisma/client.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -40,13 +41,13 @@ export class CampaignStateMachine {
     const run = async (tx: Tx) => {
       const c = await tx.campaign.findUnique({ where: { id: campaignId } });
       if (!c) throw new NotFoundException('Campaign not found');
-      if (!TRANSITIONS[c.status].includes(to)) throw new ConflictException(`Cannot move campaign from ${c.status} to ${to}`);
+      if (!TRANSITIONS[c.status].includes(to)) throw wrongStage(c.status);
 
       if (to === 'funded' && !(await tx.transaction.findFirst({ where: { campaignId, kind: 'FUNDING', status: 'successful' } }))) {
-        throw new ConflictException('Funding not confirmed by Payaza');
+        throw new ConflictException({ message: "We're still waiting for the payment provider to confirm this payment.", code: ErrorCode.PaymentPending });
       }
       if (to === 'completed' && !(await tx.transaction.findFirst({ where: { campaignId, kind: 'PAYOUT', status: 'successful' } }))) {
-        throw new ConflictException('Payout not confirmed by Payaza');
+        throw new ConflictException({ message: "We're still waiting for the payment provider to confirm the payout.", code: ErrorCode.PaymentPending });
       }
 
       const now = new Date();
@@ -59,7 +60,7 @@ export class CampaignStateMachine {
           ...(to === 'completed' && { completedAt: now }),
         },
       });
-      if (updated.count !== 1) throw new ConflictException('Campaign changed concurrently; retry');
+      if (updated.count !== 1) throw new ConflictException({ message: 'This campaign was just updated. Please try again.', code: ErrorCode.CampaignChanged });
 
       await tx.auditLog.create({
         data: {

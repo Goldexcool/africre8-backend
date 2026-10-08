@@ -66,7 +66,7 @@ describe('Payments (e2e, mock provider)', () => {
     const payouts = ctx.app.get(PaymentsService);
     const p = await ctx.prisma.transaction.findFirstOrThrow({ where: { campaignId, kind: 'PAYOUT' } });
     expect(p.status).toBe('processing');
-    await expect(payouts.payout(campaignId)).rejects.toThrow(/Campaign is payout_processing|already in progress/);
+    await expect(payouts.payout(campaignId)).rejects.toThrow(/being paid out|already in progress/);
 
     await payouts.reconcile(p.id);
     c = await http.get(`/campaigns/${campaignId}`).set(creator.auth).expect(200);
