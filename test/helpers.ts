@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
@@ -6,9 +6,10 @@ import { PrismaService } from '../src/prisma/prisma.service.js';
 
 export const TEST_DOMAIN = '@test.africre8.dev';
 
-export async function bootApp() {
+export async function bootApp(configure?: (app: INestApplication) => void) {
   const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = mod.createNestApplication();
+  configure?.(app);
   await app.init();
   return { app, http: request(app.getHttpServer()), prisma: app.get(PrismaService) };
 }

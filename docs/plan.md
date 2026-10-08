@@ -6,13 +6,12 @@ Golden path: brand swipes → creator accepts → chat → agreement → Payaza 
 **Workflow:** take the next unchecked task → build it → run its check → tick it → update *Last completed* → commit.
 
 ## Last completed
-**Task 5: Discovery + matching** (2026-10-08)
-- `GET /discover` (brand + onboarded). Filters: category, location, platform, follower range, engagement, budget, credibility, availability. It excludes creators already swiped and creators marked booked, and returns the PRD empty-state message.
-- `POST /swipes`: LIKE creates one `Interest` per brand+creator (7-day expiry) and notifies the creator; PASS hides the creator. `DELETE /swipes/:creatorId` undoes the swipe while the interest is still pending.
-- `GET /interests` (creator inbox / brand sent). `POST /interests/:id/respond` (creator): accepting creates a unique `Match` plus a `Conversation` with a system message, in one transaction.
-- `GET /matches`; `GET|POST /conversations/:id/messages` are members-only.
-- `NotificationsService` writes DB rows and pushes through a pluggable emitter, which the socket gateway will register in task 6. `GET /notifications`, `POST /notifications/:id/read`.
-- Verified: `test/matching.e2e-spec.ts` (duplicate-interest guard, discovery exclusion, 409 on double accept/undo after answer, 403 for non-member chat). `test/helpers.ts` cleans up test users.
+**Task 6: Realtime** (2026-10-08)
+- `RealtimeGateway` (`src/realtime`): authenticates with the access JWT on connect (`auth.token` or a Bearer header) and puts each socket in a single `user:{id}` room. Membership checks stay in the services.
+- Client events: `chat:send` (with ack), `chat:typing`. Server events: `notification`, `match`, `message`, `chat:typing`, plus the campaign/payment events from later tasks.
+- `RedisIoAdapter` lets any API instance reach any socket. `redisSocketEmitter()` lets the worker push events through Redis too.
+- The global HTTP `AuthGuard` skips WS contexts. socket.io is pinned to 4.8.3 to match `@nestjs/platform-socket.io`.
+- Verified: `test/realtime.e2e-spec.ts` (bad token disconnected; interest notification, match and chat message received live).
 
 ## Stack
 NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · Socket.IO · Cloudinary · Payaza · Claude (`claude-sonnet-5-5`) · Docker + nginx · Railway.
@@ -23,7 +22,7 @@ NestJS · Prisma/Postgres (Neon) · Redis + BullMQ (separate worker process) · 
 - [x] 3. Auth: register/login, access JWT (15m) + rotating refresh tokens (hashed, family reuse detection), logout, RolesGuard, onboarding guard. Check: e2e covers rotation + reuse revoking the family.
 - [x] 4. Profiles (creator/brand/socials/payout destination), Cloudinary signed upload, seed (30 creators, 3 brands, 1 admin).
 - [x] 5. Discovery (filters, excludes swiped/unavailable) + swipe + interest (expiry) + accept/decline → match + conversation.
-- [ ] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
+- [x] 6. Socket.IO gateway (JWT auth, match-member rooms, chat) + notifications (DB + socket).
 - [ ] 7. Campaigns: create/edit terms (version bump resets acceptance), bilateral accept, state machine + AuditLog.
 - [ ] 8. Payments: PaymentProvider (Mock + Payaza TEST), fund, webhook (signature, dedupe, re-query), reconcile job, payout, banks + name enquiry.
 - [ ] 9. Verification worker: YouTube Data API + TikTok oEmbed + yt-dlp/ffmpeg frames → Claude → PASS/PARTIAL/FAIL/NEEDS_REVIEW.

@@ -12,6 +12,7 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(ctx: ExecutionContext) {
+    if (ctx.getType() !== 'http') return true; // sockets authenticate on connect (RealtimeGateway)
     const targets = [ctx.getHandler(), ctx.getClass()];
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, targets)) return true;
 
