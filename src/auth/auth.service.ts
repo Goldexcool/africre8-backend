@@ -1,9 +1,10 @@
-import { ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { User } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { OtpService } from './otp.service.js';
 
 const hash = (token: string) => createHash('sha256').update(token).digest('hex');
 
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly otp: OtpService,
   ) {}
 
   async register(input: { email: string; password: string; role: 'BRAND' | 'CREATOR'; phone?: string }) {
@@ -23,6 +25,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: { email, phone: input.phone, role: input.role, passwordHash: await bcrypt.hash(input.password, 10) },
     });
+    await this.otp.issue(user, 'VERIFY_EMAIL');
     return this.issue(user);
   }
 
@@ -63,6 +66,39 @@ export class AuthService {
   async logout(token: string) {
     const row = await this.prisma.refreshToken.findUnique({ where: { tokenHash: hash(token) } });
     if (row) await this.revokeFamily(row.family);
+  }
+
+  async sendVerification(userId: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (!user.emailVerifiedAt) await this.otp.issue(user, 'VERIFY_EMAIL');
+  }
+
+  async verifyEmail(userId: string, code: string) {
+    await this.otp.check(userId, 'VERIFY_EMAIL', code, true);
+    await this.prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
+  }
+
+  /** Always succeeds from the caller's view, so it can't be used to discover which emails exist. */
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (user && user.status === 'ACTIVE') await this.otp.issue(user, 'RESET_PASSWORD');
+  }
+
+  async checkResetCode(email: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) throw new BadRequestException('That code is invalid or expired');
+    await this.otp.check(user.id, 'RESET_PASSWORD', code, false);
+    return user;
+  }
+
+  /** New password + every existing session revoked. */
+  async resetPassword(email: string, code: string, password: string) {
+    const user = await this.checkResetCode(email, code);
+    await this.otp.check(user.id, 'RESET_PASSWORD', code, true);
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(password, 10), emailVerifiedAt: user.emailVerifiedAt ?? new Date() } }),
+      this.prisma.refreshToken.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } }),
+    ]);
   }
 
   me(userId: string) {

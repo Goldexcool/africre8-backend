@@ -110,6 +110,7 @@ model User {
   status             UserStatus         @default(ACTIVE)
   verificationStatus VerificationStatus @default(UNVERIFIED)
   onboardedAt        DateTime?
+  emailVerifiedAt    DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -119,6 +120,24 @@ model User {
   refreshTokens     RefreshToken[]
   notifications     Notification[]
   messages          Message[]
+}
+
+enum OtpPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model OtpCode {
+  id         String     @id @default(uuid())
+  userId     String
+  purpose    OtpPurpose
+  codeHash   String
+  attempts   Int        @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([userId, purpose])
 }
 
 model RefreshToken {
