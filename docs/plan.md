@@ -102,3 +102,9 @@ npm run start:dev
 - [ ] 23. Message pagination for `GET /conversations/:id/messages`, if needed.
 
 **Mobile Phase D (D3):** `POST/PUT /opportunities` and `POST /opportunities/:id/publish|close` now return the same view as list/detail (adds `budgetNgn` next to `budgetKobo`); e2e asserts it. The "creators can turn off invitations" e2e test no longer depends on how many creators exist.
+
+## Escrow refunds (done)
+- New statuses `cancelled`, `refund_processing`, `refund_failed`, `refunded`; `REFUND` transaction kind with one live refund per campaign (partial unique index).
+- `POST /campaigns/:id/cancel` (brand): unfunded closes; funded or in progress refunds amount + fee. `PUT /profiles/refund-account` (brand) saves the bank account and retries any `refund_failed` campaign.
+- Admin dispute outcome `refund`. Worker job `expire` (every 10 min) refunds funded work 3 days past its deadline.
+- Verified: `test/escrow-refund.e2e-spec.ts` (6 tests, mock provider). Live Payaza refund (payout to the brand account) not yet tried.

@@ -18,9 +18,11 @@ export class PaymentsProcessor extends WorkerHost implements OnModuleInit {
 
   async onModuleInit() {
     await this.queue.upsertJobScheduler('reconcile', { every: 60_000 }, { name: 'reconcile' });
+    await this.queue.upsertJobScheduler('expire', { every: 600_000 }, { name: 'expire' });
   }
 
   async process(job: Job) {
+    if (job.name === 'expire') return this.payments.refundOverdue();
     if (job.name === 'reconcile') {
       const n = await this.payments.reconcileAll();
       if (n) this.log.log(`Reconciled ${n} pending transaction(s)`);

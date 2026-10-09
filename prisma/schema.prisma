@@ -68,11 +68,16 @@ enum CampaignStatus {
   payout_failed
   completed
   disputed
+  cancelled
+  refund_processing
+  refund_failed
+  refunded
 }
 
 enum TransactionKind {
   FUNDING
   PAYOUT
+  REFUND
 }
 
 enum TransactionStatus {

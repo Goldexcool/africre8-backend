@@ -8,10 +8,10 @@ type Tx = Prisma.TransactionClient;
 
 /** Allowed moves. Ported from the mobile reducer and extended with revision, dispute and payout-retry paths. */
 export const TRANSITIONS: Record<CampaignStatus, CampaignStatus[]> = {
-  pending_agreement: ['awaiting_funding'],
-  awaiting_funding: ['funded', 'pending_agreement'],
-  funded: ['in_progress', 'submitted', 'disputed'],
-  in_progress: ['submitted', 'disputed'],
+  pending_agreement: ['awaiting_funding', 'cancelled'],
+  awaiting_funding: ['funded', 'pending_agreement', 'cancelled'],
+  funded: ['in_progress', 'submitted', 'disputed', 'refund_processing'],
+  in_progress: ['submitted', 'disputed', 'refund_processing'],
   submitted: ['under_review', 'disputed'],
   under_review: ['approved', 'revision_required', 'disputed'],
   revision_required: ['submitted', 'disputed'],
@@ -19,7 +19,11 @@ export const TRANSITIONS: Record<CampaignStatus, CampaignStatus[]> = {
   payout_processing: ['completed', 'payout_failed'],
   payout_failed: ['payout_processing'],
   completed: [],
-  disputed: ['approved', 'revision_required', 'in_progress'],
+  disputed: ['approved', 'revision_required', 'in_progress', 'refund_processing'],
+  cancelled: [],
+  refund_processing: ['refunded', 'refund_failed'],
+  refund_failed: ['refund_processing'],
+  refunded: [],
 };
 
 @Injectable()
@@ -48,6 +52,10 @@ export class CampaignStateMachine {
       }
       if (to === 'completed' && !(await tx.transaction.findFirst({ where: { campaignId, kind: 'PAYOUT', status: 'successful' } }))) {
         throw new ConflictException({ message: "We're still waiting for the payment provider to confirm the payout.", code: ErrorCode.PaymentPending });
+      }
+
+      if (to === 'refunded' && !(await tx.transaction.findFirst({ where: { campaignId, kind: 'REFUND', status: 'successful' } }))) {
+        throw new ConflictException({ message: "We're still waiting for the payment provider to confirm the refund.", code: ErrorCode.PaymentPending });
       }
 
       const now = new Date();

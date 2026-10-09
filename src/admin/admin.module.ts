@@ -11,8 +11,8 @@ import { PaymentsService } from '../payments/payments.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ReviewModule, ReviewService } from '../review/review.module.js';
 
-const resolveSchema = z.object({ outcome: z.enum(['release', 'revision', 'resume']), resolution: z.string().trim().min(5).max(2000) });
-const OUTCOME = { release: ['approved', 'RESOLVED_RELEASE'], revision: ['revision_required', 'RESOLVED_REVISION'], resume: ['in_progress', 'RESOLVED_REVISION'] } as const;
+const resolveSchema = z.object({ outcome: z.enum(['release', 'revision', 'resume', 'refund']), resolution: z.string().trim().min(5).max(2000) });
+const OUTCOME = { release: ['approved', 'RESOLVED_RELEASE'], revision: ['revision_required', 'RESOLVED_REVISION'], resume: ['in_progress', 'RESOLVED_REVISION'], refund: ['refund_processing', 'RESOLVED_REFUND'] } as const;
 
 @Injectable()
 class AdminService {
@@ -90,11 +90,16 @@ class AdminService {
     const d = await this.prisma.dispute.findUnique({ where: { id }, include: { campaign: true } });
     if (!d || d.status !== 'OPEN') throw new NotFoundException('Open dispute not found');
     const [to, status] = OUTCOME[outcome];
-    await this.prisma.$transaction(async (tx) => {
-      await this.sm.transition(d.campaignId, to, { actorId: adminId, tx, meta: { disputeId: id, resolution } });
-      await tx.dispute.update({ where: { id }, data: { status, resolution, resolvedAt: new Date() } });
-    });
-    this.sm.announce({ ...d.campaign, status: to, from: 'disputed' });
+    if (outcome === 'refund') {
+      await this.payments.refund(d.campaignId, adminId, resolution); // moves the campaign itself
+      await this.prisma.dispute.update({ where: { id }, data: { status, resolution, resolvedAt: new Date() } });
+    } else {
+      await this.prisma.$transaction(async (tx) => {
+        await this.sm.transition(d.campaignId, to, { actorId: adminId, tx, meta: { disputeId: id, resolution } });
+        await tx.dispute.update({ where: { id }, data: { status, resolution, resolvedAt: new Date() } });
+      });
+      this.sm.announce({ ...d.campaign, status: to, from: 'disputed' });
+    }
     for (const userId of [d.campaign.brandId, d.campaign.creatorId]) {
       await this.notifications.notify(userId, { kind: 'dispute', title: 'Dispute resolved', body: resolution.slice(0, 140), linkTo: `/campaigns/${d.campaignId}` });
     }

@@ -44,6 +44,16 @@ export class ProfilesController {
     return dest;
   }
 
+  /** Where a brand's money goes back to if a funded campaign is cancelled or lost in a dispute. */
+  @Roles('BRAND')
+  @Put('profiles/refund-account')
+  async refundAccount(@CurrentUser() u: AuthUser, @Body(new ZodPipe(payoutSchema)) body: PayoutInput) {
+    const { accountName } = await this.payments.provider.resolveAccount(body.bankCode, body.accountNumber);
+    const dest = await this.profiles.setPayoutDestination(u.id, { ...body, accountName });
+    for (const id of await this.payments.refundsOwed(u.id)) await this.payments.refund(id, u.id, 'Refund account saved').catch(() => undefined);
+    return dest;
+  }
+
   @Get('creators/:id')
   creatorById(@Param('id', ParseUUIDPipe) id: string) {
     return this.profiles.creatorCard(id);

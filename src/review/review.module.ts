@@ -14,6 +14,7 @@ import { PaymentsService } from '../payments/payments.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 const revisionSchema = z.object({ note: z.string().trim().min(5).max(2000) });
+const cancelSchema = z.object({ reason: z.string().trim().min(3).max(500).default('Cancelled by brand') });
 const disputeSchema = z.object({ reason: z.string().trim().min(5).max(2000), evidence: z.array(z.string().url()).max(10).default([]) });
 const DISPUTABLE: CampaignStatus[] = ['funded', 'in_progress', 'submitted', 'under_review', 'revision_required', 'approved'];
 
@@ -59,6 +60,26 @@ export class ReviewService {
     await this.notifications.notify(c.creatorId, { kind: 'review', title: 'Revision requested', body: note.slice(0, 140), linkTo: `/campaigns/${campaignId}` });
   }
 
+  /** Brand walks away. Before funding nothing moves; once funded and before any delivery, the escrow is refunded. */
+  async cancel(brandId: string, campaignId: string, reason: string): Promise<void> {
+    const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id: campaignId } });
+    if (['funded', 'in_progress'].includes(c.status)) {
+      await this.payments.refund(campaignId, brandId, reason);
+      await this.notifications.notify(c.creatorId, { kind: 'campaign', title: 'Campaign cancelled', body: `The brand cancelled “${c.title}” before delivery. The payment is being returned.`, linkTo: `/campaigns/${campaignId}` });
+      return;
+    }
+    if (!['pending_agreement', 'awaiting_funding'].includes(c.status)) throw wrongStage(c.status, "This campaign can't be cancelled now. Raise a dispute instead.");
+    const live = await this.prisma.transaction.findFirst({ where: { campaignId, kind: 'FUNDING', status: { in: ['pending', 'processing'] } } });
+    if (live) {
+      await this.payments.reconcile(live.id); // money may already have arrived
+      const now = await this.prisma.transaction.findUniqueOrThrow({ where: { id: live.id } });
+      if (now.status === 'successful') return this.cancel(brandId, campaignId, reason); // funded after all: refund path
+      if (now.status !== 'failed') throw new ConflictException('A payment is still in progress. Try again in a minute.');
+    }
+    await this.sm.transition(campaignId, 'cancelled', { actorId: brandId, meta: { reason } });
+    await this.notifications.notify(c.creatorId, { kind: 'campaign', title: 'Campaign cancelled', body: `The brand cancelled “${c.title}”.`, linkTo: `/campaigns/${campaignId}` });
+  }
+
   async dispute(u: AuthUser, campaignId: string, reason: string, evidence: string[]) {
     const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id: campaignId } });
     if (!DISPUTABLE.includes(c.status)) throw wrongStage(c.status, "This campaign can't be disputed right now.");
@@ -92,6 +113,14 @@ class ReviewController {
   async approve(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
     await this.brandOwned(u, id);
     await this.review.approve(u.id, id);
+    return this.campaigns.detail(u, id);
+  }
+
+  @Roles('BRAND')
+  @Post('cancel')
+  async cancel(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body(new ZodPipe(cancelSchema)) b: z.infer<typeof cancelSchema>) {
+    await this.brandOwned(u, id);
+    await this.review.cancel(u.id, id, b.reason);
     return this.campaigns.detail(u, id);
   }
 

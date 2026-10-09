@@ -154,6 +154,75 @@ export class PaymentsService {
     return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
   }
 
+  // ---------- Refund (escrow goes back to the brand) ----------
+
+  /**
+   * Returns everything the brand paid (work amount + fee) to the brand's saved account. The campaign leaves its
+   * current state in the same transaction that records the refund, so a payout and a refund can never both be live.
+   * With no account saved the refund is recorded as failed and retried when the brand saves one.
+   */
+  async refund(campaignId: string, actorId: string | undefined, reason: string) {
+    const c = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+    if (!c) throw new NotFoundException('Campaign not found');
+    if (!['funded', 'in_progress', 'disputed', 'refund_failed'].includes(c.status)) throw wrongStage(c.status);
+    const dest = await this.prisma.payoutDestination.findUnique({ where: { userId: c.brandId } });
+
+    const reference = ref('R');
+    const attempts = await this.prisma.transaction.count({ where: { campaignId, kind: 'REFUND' } });
+    let tx: Transaction;
+    try {
+      tx = await this.prisma.$transaction(async (db) => {
+        const t = await db.transaction.create({
+          data: {
+            campaignId,
+            kind: 'REFUND',
+            amountKobo: c.amountKobo + c.feeKobo,
+            payazaReference: reference,
+            idempotencyKey: `refund:${campaignId}:${attempts + 1}`,
+            method: 'bank_transfer',
+            instructions: dest ? { bankCode: dest.bankCode, bankName: dest.bankName, accountNumber: dest.accountNumber, accountName: dest.accountName } : {},
+          },
+        });
+        await this.sm.transition(campaignId, 'refund_processing', { actorId, reference, tx: db, meta: { reason } });
+        return t;
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException('A refund is already in progress');
+      throw e;
+    }
+    this.sm.announce({ ...c, status: 'refund_processing', from: c.status });
+    await this.audit(actorId, tx, 'payment.refund_started', null, 'pending', { reason });
+
+    if (!dest) {
+      await this.settle(tx.id, 'failed', 'NO_REFUND_ACCOUNT', {});
+      return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
+    }
+    try {
+      const r = await this.provider.payout({ reference, amountNgn: naira(tx.amountKobo), bankCode: dest.bankCode, accountNumber: dest.accountNumber, accountName: dest.accountName, narration: `AfiCre8 refund ${c.title}` });
+      if (r.status === 'failed') await this.settle(tx.id, 'failed', r.providerStatus, r.raw);
+      else await this.prisma.transaction.update({ where: { id: tx.id }, data: { status: 'processing', providerStatus: r.providerStatus, providerResponse: r.raw as Prisma.InputJsonValue } });
+    } catch (e) {
+      this.log.error(`Refund ${reference} failed to start: ${(e as Error).message}`);
+      await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
+    }
+    return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
+  }
+
+  /** Funded work nobody delivered by the deadline plus a grace period goes back to the brand. Run by the worker. */
+  async refundOverdue(graceMs = 3 * 24 * 3600_000) {
+    const overdue = await this.prisma.campaign.findMany({ where: { status: { in: ['funded', 'in_progress'] }, deadline: { lt: new Date(Date.now() - graceMs) } }, take: 20 });
+    for (const c of overdue) {
+      await this.refund(c.id, undefined, 'Deadline passed without delivery').catch((e) => this.log.warn(`expire ${c.id}: ${e.message}`));
+      await this.notifications.notify(c.creatorId, { kind: 'campaign', title: 'Campaign expired', body: `“${c.title}” passed its deadline without delivery, so the payment is returned to the brand.`, linkTo: `/campaigns/${c.id}` });
+    }
+    return overdue.length;
+  }
+
+  /** Campaigns owing the brand a refund that could not be sent (no account yet, or the bank returned it). */
+  async refundsOwed(brandId: string) {
+    return (await this.prisma.campaign.findMany({ where: { brandId, status: 'refund_failed' }, select: { id: true } })).map((c) => c.id);
+  }
+
   // ---------- Confirmation (webhook, reconcile job, manual check all end here) ----------
 
   /** Re-queries Payaza — the only source of truth — and applies the result. Safe to call any number of times. */
@@ -201,6 +270,9 @@ export class PaymentsService {
       if (tx.kind === 'FUNDING' && status === 'successful') {
         return { tx, moved: await this.sm.transition(tx.campaignId, 'funded', { reference: tx.payazaReference, tx: db }) };
       }
+      if (tx.kind === 'REFUND') {
+        return { tx, moved: await this.sm.transition(tx.campaignId, status === 'successful' ? 'refunded' : 'refund_failed', { reference: tx.payazaReference, tx: db }) };
+      }
       if (tx.kind === 'PAYOUT') {
         const moved = await this.sm.transition(tx.campaignId, status === 'successful' ? 'completed' : 'payout_failed', { reference: tx.payazaReference, tx: db });
         if (status === 'successful') await db.creatorProfile.update({ where: { userId: moved.creatorId }, data: { completedCampaigns: { increment: 1 } } });
@@ -218,6 +290,11 @@ export class PaymentsService {
       await this.notifications.notify(c.brandId, { kind: 'funding', title: 'Payment confirmed', body: `Your payment for “${c.title}” was received.`, linkTo: `/campaigns/${c.id}` });
     } else if (tx.kind === 'FUNDING') {
       await this.notifications.notify(c.brandId, { kind: 'funding', title: 'Payment failed', body: `Payment for “${c.title}” did not go through. The campaign is still awaiting funding.`, linkTo: `/campaigns/${c.id}` });
+    } else if (tx.kind === 'REFUND') {
+      const total = fmt(tx.amountKobo);
+      await (status === 'successful'
+        ? this.notifications.notify(c.brandId, { kind: 'payout', title: 'Refund sent', body: `${total} for “${c.title}” is on its way back to your account.`, linkTo: `/campaigns/${c.id}` })
+        : this.notifications.notify(c.brandId, { kind: 'payout', title: 'Add your refund account', body: `We couldn't send your ${total} refund for “${c.title}”. Save a bank account and we'll retry.`, linkTo: '/profile/payment' }));
     } else if (status === 'successful') {
       await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payment successful', body: `${fmt(c.amountKobo)} paid for “${c.title}”. Ref ${tx.payazaReference}.`, linkTo: `/transaction/${tx.id}` });
       await this.notifications.notify(c.brandId, { kind: 'payout', title: 'Payout completed', body: `“${c.title}” is complete.`, linkTo: `/campaigns/${c.id}` });
