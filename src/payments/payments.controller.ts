@@ -52,7 +52,7 @@ export class PaymentsController {
     return NG_BANKS;
   }
 
-  @Roles('CREATOR')
+  @Roles('CREATOR', 'BRAND')
   @Post('payments/resolve-account')
   resolve(@Body(new ZodPipe(resolveSchema)) b: z.infer<typeof resolveSchema>) {
     return this.payments.provider.resolveAccount(b.bankCode, b.accountNumber);
