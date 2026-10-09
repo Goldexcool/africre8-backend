@@ -19,12 +19,13 @@ import { AdminModule } from './admin/admin.module.js';
 import { OpportunitiesModule } from './opportunities/opportunities.module.js';
 import { MetaModule } from './meta/meta.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
+import { ObjectStoreService } from './uploads/object-store.service.js';
 import { AllExceptionsFilter } from './common/all-exceptions.filter.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule, OpportunitiesModule, MetaModule],
   controllers: [HealthController, UploadsController],
-  providers: [RealtimeGateway, { provide: APP_FILTER, useClass: AllExceptionsFilter }],
+  providers: [RealtimeGateway, ObjectStoreService, { provide: APP_FILTER, useClass: AllExceptionsFilter }],
 })
 export class AppModule {}

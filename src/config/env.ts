@@ -17,7 +17,11 @@ const schema = z.object({
   AZURE_OPENAI_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),
   YOUTUBE_API_KEY: z.string().optional(),
-  CLOUDINARY_URL: z.string().optional(),
+  OBJECT_STORE_DRIVER: z.enum(['r2']).optional(),
+  R2_ENDPOINT: z.string().url().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
