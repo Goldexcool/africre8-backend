@@ -54,8 +54,12 @@ describe.skipIf(!mlUp)('Recommender by default (e2e, live ML service)', () => {
     // recommended creators come first, in rank order
     const ranks = d.body.items.filter((c: { match: unknown }) => c.match).map((c: { match: { rank: number } }) => c.match.rank);
     expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
-    const matched = d.body.items.map((c: { match: unknown }) => !!c.match);
-    expect(matched).toEqual([...matched].sort((a: boolean, b: boolean) => Number(b) - Number(a))); // no unranked creator before a ranked one
+    // only creators the recommender rates at least 30% are offered, so the deck ends
+    expect(d.body.items.every((c: { match: { score: number } | null }) => c.match && c.match.score >= 0.3)).toBe(true);
+
+    // the creator sees the brief with the same match, from the same model
+    const feed = await http.get('/opportunities/feed').set(creator.auth).expect(200);
+    expect(feed.body.find((x: { id: string }) => x.id === o.body.id)?.match?.score).toBeCloseTo(card.match.score, 6);
 
     // credibility for one creator, as a brand sees it on the profile
     const cred = await http.get(`/creators/${creator.id}/credibility`).set(brand.auth).expect(200);

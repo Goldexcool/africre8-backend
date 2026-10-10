@@ -14,6 +14,7 @@ import {
   type RecommendationCreator,
 } from './ml.mapper.js';
 import type { RecommendationInput } from './ml.schemas.js';
+import { campaignEvidence } from './campaign-evidence.js';
 
 const creatorInclude = {
   creator: { include: { user: true, socials: true } },
@@ -35,6 +36,8 @@ export class MlService {
     opportunityId: string,
     input: RecommendationInput,
     requestId?: string,
+    /** Creators to leave out before ranking (already swiped), so the top of the list is always new to the brand. */
+    excludeCreatorIds: string[] = [],
   ) {
     const owned = await this.prisma.opportunity.findUnique({ where: { id: opportunityId }, select: { brandId: true, status: true } });
     if (!owned || owned.brandId !== brandId)
@@ -57,6 +60,7 @@ export class MlService {
     const rows = await this.prisma.creatorMlProfile.findMany({
       where: {
         namespace: opportunity.mlProfile.namespace,
+        ...(excludeCreatorIds.length && { creatorId: { notIn: excludeCreatorIds } }),
         creator: {
           availability: { not: 'booked' },
           user: {
@@ -138,8 +142,9 @@ export class MlService {
     const events = profile.mlProfile
       ? await this.eventsFor(profile.mlProfile.id)
       : [];
+    const real = await this.realEvidence([creatorId]);
     return this.client.credibility(
-      { creator_id: creatorId, events: mapEvidenceToMl(creatorId, events) },
+      { creator_id: creatorId, events: [...mapEvidenceToMl(creatorId, events), ...(real.get(creatorId) ?? [])] },
       requestId,
     );
   }
@@ -159,6 +164,7 @@ export class MlService {
         { sequence: 'asc' },
       ],
     });
+    const real = await this.realEvidence(creatorIds);
     const requests = creatorIds.map((creatorId) => {
       const profileIds = new Set(
         profiles
@@ -167,10 +173,13 @@ export class MlService {
       );
       return {
         creator_id: creatorId,
-        events: mapEvidenceToMl(
-          creatorId,
-          events.filter((row) => profileIds.has(row.creatorMlProfileId)),
-        ),
+        events: [
+          ...mapEvidenceToMl(
+            creatorId,
+            events.filter((row) => profileIds.has(row.creatorMlProfileId)),
+          ),
+          ...(real.get(creatorId) ?? []),
+        ],
       };
     });
     const results = await this.client.credibilityBatch(
@@ -178,6 +187,49 @@ export class MlService {
       requestId,
     );
     return new Map(results.map((result) => [result.creator_id, result]));
+  }
+
+  /**
+   * How well one creator fits each brief, from the same model and hard rules brands see (0-1), or null when they do
+   * not pass the brief's rules or the brief cannot be scored (no platform named in its deliverables). Returns null when
+   * the creator cannot be scored at all (no ML profile yet), so callers fall back to an unscored list.
+   * ponytail: one model call per brief, 8 at a time; add a batch endpoint to the ML service if the feed grows past ~100.
+   */
+  async scoreBriefsFor(creatorId: string, opportunityIds: string[], requestId?: string) {
+    const scores = new Map<string, { score: number; matched: string[] } | null>();
+    await this.sync.syncCreator(creatorId);
+    const creator = await this.prisma.creatorMlProfile.findUnique({ where: { creatorId }, include: creatorInclude });
+    if (!creator) return null;
+    for (const id of opportunityIds) await this.sync.syncOpportunity(id);
+    const briefs = await this.prisma.opportunity.findMany({ where: { id: { in: opportunityIds } }, include: { mlProfile: true } });
+    const queue = briefs.filter((o) => o.mlProfile?.namespace === creator.namespace);
+    const worker = async () => {
+      for (let o = queue.shift(); o; o = queue.shift()) {
+        const r = await this.client.recommend(
+          { mode: 'structured', campaign: mapOpportunityToMl(o), candidates: [mapCreatorToMl(creator)], limit: 1, include_excluded: false },
+          requestId,
+        );
+        const top = r.recommendations[0];
+        scores.set(o.id, top ? { score: top.score, matched: matchedParts(top.explanation.components) } : null);
+      }
+    };
+    await Promise.all(Array.from({ length: 8 }, worker));
+    return scores;
+  }
+
+  /** Finished campaigns in the app, as credibility evidence, per creator. */
+  private async realEvidence(creatorIds: string[]) {
+    const campaigns = await this.prisma.campaign.findMany({
+      where: { creatorId: { in: creatorIds } },
+      select: {
+        id: true, creatorId: true, status: true, createdAt: true, fundedAt: true, completedAt: true, updatedAt: true,
+        submissions: { select: { late: true, superseded: true, createdAt: true } },
+        disputes: { select: { status: true, createdAt: true, resolvedAt: true } },
+      },
+    });
+    const byCreator = new Map<string, Record<string, unknown>[]>();
+    for (const c of campaigns) byCreator.set(c.creatorId, [...(byCreator.get(c.creatorId) ?? []), ...campaignEvidence(c)]);
+    return byCreator;
   }
 
   private eventsFor(creatorMlProfileId: string) {
@@ -207,3 +259,7 @@ export class MlService {
     };
   }
 }
+
+/** Which parts of a brief a creator matches (niche, category, ...), strongest first. */
+export const matchedParts = (components: Record<string, number>) =>
+  Object.entries(components).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a).map(([k]) => k);

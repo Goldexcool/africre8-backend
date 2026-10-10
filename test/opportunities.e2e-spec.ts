@@ -51,6 +51,15 @@ describe('Campaign briefs, invitations, applications (e2e)', () => {
     const feedB = await http.get('/opportunities/feed').set(b.auth).expect(200);
     expect(feedB.body.map((o: { id: string }) => o.id)).not.toContain(pub.body.id); // full
 
+    // A creator's pass takes a brief out of their feed until they undo it, so the queue ends.
+    const other = await http.post('/opportunities').set(brand.auth).send(brief({ title: 'Pass me' })).expect(201);
+    const inFeed = async () => (await http.get('/opportunities/feed').set(b.auth).expect(200)).body.some((o: { id: string }) => o.id === other.body.id);
+    expect(await inFeed()).toBe(true);
+    await http.post(`/opportunities/${other.body.id}/pass`).set(b.auth).expect(204);
+    expect(await inFeed()).toBe(false);
+    await http.delete(`/opportunities/${other.body.id}/pass`).set(b.auth).expect(204);
+    expect(await inFeed()).toBe(true);
+
     const mine = await http.get('/opportunities/mine').set(brand.auth).expect(200);
     const pubRow = mine.body.find((o: { id: string }) => o.id === pub.body.id);
     expect(pubRow.applications).toBe(1);

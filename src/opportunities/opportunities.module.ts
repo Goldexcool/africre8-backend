@@ -1,9 +1,12 @@
-import { Body, ConflictException, Controller, Get, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, ConflictException, Controller, Delete, Get, HttpCode, Injectable, Logger, Module, NotFoundException, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { CurrentUser, Roles, type AuthUser } from '../common/auth.decorators.js';
 import { OnboardedGuard } from '../common/onboarded.guard.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import type { Opportunity } from '../generated/prisma/client.js';
+import { MIN_MATCH } from '../discovery/discovery.module.js';
+import { MlModule } from '../ml/ml.module.js';
+import { MlService } from '../ml/ml.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -23,12 +26,20 @@ const briefSchema = z.object({
 type BriefInput = z.infer<typeof briefSchema>;
 const applySchema = z.object({ message: z.string().trim().min(10).max(1000) });
 const INTEREST_TTL_DAYS = 14;
+/**
+ * A creator's pass on a brief, kept in the Swipe table under its own scope so it never mixes with the brand's swipes.
+ * ponytail: reuses Swipe to avoid a migration; give creator passes their own table if they ever need more fields.
+ */
+const passScope = (opportunityId: string) => `creator-pass:${opportunityId}`;
 
 @Injectable()
 export class OpportunitiesService {
+  private readonly log = new Logger(OpportunitiesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly ml: MlService,
   ) {}
 
   async create(brandId: string, b: BriefInput) {
@@ -59,23 +70,50 @@ export class OpportunitiesService {
   }
 
   /**
-   * Creator feed: public, published briefs that still have application slots, plus private briefs
-   * they were invited to. Briefs they already applied to are left out.
+   * Creator feed: published briefs that fit this creator at least MIN_MATCH (scored by the same recommender brands use),
+   * best fit first, plus private briefs they were invited to. Briefs they applied to or passed on are left out, so the
+   * queue ends. If the recommender is down the briefs come unscored, newest first, and `match` is null.
    */
   async feed(creatorId: string) {
     const mine = await this.prisma.interest.findMany({ where: { creatorId }, select: { opportunityId: true, senderId: true } });
     const applied = new Set(mine.filter((i) => i.senderId === creatorId).map((i) => i.opportunityId));
     const invitedTo = mine.filter((i) => i.senderId !== creatorId).map((i) => i.opportunityId).filter((x): x is string => !!x);
+    const passes = await this.prisma.swipe.findMany({ where: { creatorId, scopeKey: { startsWith: passScope('') } }, select: { scopeKey: true } });
+    const passed = new Set(passes.map((p) => p.scopeKey.slice(passScope('').length)));
     const rows = await this.prisma.opportunity.findMany({
       where: { status: 'PUBLISHED', OR: [{ visibility: 'PUBLIC' }, { id: { in: invitedTo } }] },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
     const full = await this.fullIds(rows);
-    const brands = await this.prisma.brandProfile.findMany({ where: { userId: { in: rows.map((r) => r.brandId) } } });
-    return rows
-      .filter((o) => !applied.has(o.id) && (!full.has(o.id) || invitedTo.includes(o.id)))
-      .map((o) => ({ ...this.view(o), brand: brands.find((b) => b.userId === o.brandId) ?? null, invited: invitedTo.includes(o.id) }));
+    const open = rows.filter((o) => !applied.has(o.id) && !passed.has(o.id) && (!full.has(o.id) || invitedTo.includes(o.id)));
+    let scores: Map<string, { score: number; matched: string[] } | null> | null = null;
+    try {
+      scores = await this.ml.scoreBriefsFor(creatorId, open.map((o) => o.id));
+    } catch (e) {
+      this.log.warn(`feed scores for ${creatorId}: ${(e as Error).message}`);
+    }
+    const brands = await this.prisma.brandProfile.findMany({ where: { userId: { in: open.map((r) => r.brandId) } } });
+    return open
+      .map((o) => ({ ...this.view(o), brand: brands.find((b) => b.userId === o.brandId) ?? null, invited: invitedTo.includes(o.id), match: scores?.get(o.id) ?? null }))
+      .filter((o) => !scores || o.invited || (o.match?.score ?? 0) >= MIN_MATCH)
+      .sort((a, b) => Number(b.invited) - Number(a.invited) || (b.match?.score ?? 0) - (a.match?.score ?? 0));
+  }
+
+  /** The creator is not interested in this brief: it leaves their feed. */
+  async pass(creatorId: string, id: string) {
+    const o = await this.prisma.opportunity.findUnique({ where: { id }, select: { brandId: true } });
+    if (!o) throw new NotFoundException('Campaign brief not found');
+    const scopeKey = passScope(id);
+    await this.prisma.swipe.upsert({
+      where: { brandId_creatorId_scopeKey: { brandId: o.brandId, creatorId, scopeKey } },
+      create: { brandId: o.brandId, creatorId, direction: 'PASS', scopeKey },
+      update: {},
+    });
+  }
+
+  async unpass(creatorId: string, id: string) {
+    await this.prisma.swipe.deleteMany({ where: { creatorId, scopeKey: passScope(id) } });
   }
 
   async one(u: AuthUser, id: string) {
@@ -186,7 +224,21 @@ class OpportunitiesController {
   apply(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body(new ZodPipe(applySchema)) b: z.infer<typeof applySchema>) {
     return this.opps.apply(u.id, id, b.message);
   }
+
+  @Roles('CREATOR')
+  @HttpCode(204)
+  @Post(':id/pass')
+  pass(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.opps.pass(u.id, id);
+  }
+
+  @Roles('CREATOR')
+  @HttpCode(204)
+  @Delete(':id/pass')
+  unpass(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.opps.unpass(u.id, id);
+  }
 }
 
-@Module({ controllers: [OpportunitiesController], providers: [OpportunitiesService], exports: [OpportunitiesService] })
+@Module({ imports: [MlModule], controllers: [OpportunitiesController], providers: [OpportunitiesService], exports: [OpportunitiesService] })
 export class OpportunitiesModule {}

@@ -5,12 +5,14 @@ import { OnboardedGuard } from '../common/onboarded.guard.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { MlModule } from '../ml/ml.module.js';
-import { MlService } from '../ml/ml.service.js';
+import { MlService, matchedParts } from '../ml/ml.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { toCreatorCard } from '../profiles/creator.mapper.js';
 
 export const INTEREST_TTL_DAYS = 7;
+/** A card is only offered when the recommender rates the fit at least this high (0-1), so every queue ends. */
+export const MIN_MATCH = 0.3;
 
 const num = z.coerce.number().optional();
 const filtersSchema = z.object({
@@ -53,9 +55,9 @@ export class DiscoveryService {
   ) {}
 
   /**
-   * Creators for the deck. With a brief, the recommender ranks them by default: recommended creators come first in
-   * model order with their match and credibility, then everyone else who fits the filters. When the recommender
-   * cannot rank (no platform in the brief, ML service down) the usual order is used and `ranking` says why.
+   * Creators for the deck. With a brief, only creators the recommender rates at least MIN_MATCH, best first, each with
+   * their match and model credibility; the deck ends when they have all been swiped. When the recommender cannot rank
+   * (no platform in the brief, ML service down) the usual order is used and `ranking` says why.
    */
   async discover(brandId: string, f: Filters) {
     if (!f.opportunityId) return { ...(await this.plain(brandId, f)), ranking: { source: 'default' as const } };
@@ -63,45 +65,53 @@ export class DiscoveryService {
     let note: string | undefined;
     let model: { mode: string; version: string } | undefined;
     try {
-      const r = await this.ml.recommend(brandId, f.opportunityId, { mode: 'structured', limit: 50, includeExcluded: false, includeCredibility: true });
-      recommended = r.organic;
+      const swiped = await this.swipedIds(brandId, f.opportunityId);
+      const r = await this.ml.recommend(brandId, f.opportunityId, { mode: 'structured', limit: 100, includeExcluded: false, includeCredibility: true }, undefined, swiped);
+      recommended = r.organic.filter((x) => x.score >= MIN_MATCH);
       model = r.model;
     } catch (e) {
       if (e instanceof NotFoundException) throw e; // not this brand's brief
       note = e instanceof HttpException && e.getStatus() < 500 ? e.message : 'Recommendations are unavailable right now, so creators are shown in the usual order.';
       if (!(e instanceof HttpException) || e.getStatus() >= 500) this.log.warn(`recommendations for ${f.opportunityId}: ${(e as Error).message}`);
+      return { ...(await this.plain(brandId, f)), ranking: { source: 'default' as const, note } };
     }
-    const base = await this.plain(brandId, f, recommended.map((r) => r.creator_id));
+    // Credibility is the model's (real campaign evidence); creators without any yet ("New") only pass a 0 minimum.
+    if (f.minCredibility) recommended = recommended.filter((r) => (r.credibility?.credibility_score ?? -1) >= f.minCredibility!);
+    const { minCredibility: _, ...rest } = f;
+    const base = await this.plain(brandId, { ...rest, limit: 50 }, recommended.map((r) => r.creator_id), true);
     const byId = new Map(recommended.map((r) => [r.creator_id, r]));
     const ranked = base.items
+      .filter((card) => byId.has(card.id))
       .map((card) => {
-        const r = byId.get(card.id);
+        const r = byId.get(card.id)!;
         return {
           ...card,
-          match: r
-            ? {
-                rank: r.rank,
-                score: r.score,
-                summary: r.explanation.summary,
-                // which parts of the brief this creator matches (niche, category, ...), strongest first
-                matched: Object.entries(r.explanation.components).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a).map(([k]) => k),
-                credibility: r.credibility ? { status: r.credibility.status, score: r.credibility.credibility_score, tier: r.credibility.evidence_tier } : null,
-              }
-            : null,
+          match: {
+            rank: r.rank,
+            score: r.score,
+            summary: r.explanation.summary,
+            matched: matchedParts(r.explanation.components),
+            credibility: r.credibility ? { status: r.credibility.status, score: r.credibility.credibility_score, tier: r.credibility.evidence_tier } : null,
+          },
         };
       })
-      .sort((a, b) => (a.match?.rank ?? Infinity) - (b.match?.rank ?? Infinity))
+      .sort((a, b) => a.match.rank - b.match.rank)
       .slice(0, f.limit);
     return {
       items: ranked,
-      message: base.message,
-      ranking: recommended.length ? { source: 'recommender' as const, model } : { source: 'default' as const, note: note ?? 'No creators matched this brief yet, so creators are shown in the usual order.' },
+      message: ranked.length ? undefined : "You've seen every creator who matches this brief. New matches appear as creators join or update their profiles.",
+      ranking: { source: 'recommender' as const, model, minMatch: MIN_MATCH },
     };
   }
 
-  /** The filtered pool, best credibility first; `extra` creators (the recommended ones) are always included if they fit. */
-  private async plain(brandId: string, f: Filters, extra: string[] = []) {
-    const swiped = await this.prisma.swipe.findMany({ where: { brandId, scopeKey: scope(f.opportunityId) }, select: { creatorId: true } });
+  private async swipedIds(brandId: string, opportunityId?: string) {
+    const rows = await this.prisma.swipe.findMany({ where: { brandId, scopeKey: scope(opportunityId) }, select: { creatorId: true } });
+    return rows.map((s) => s.creatorId);
+  }
+
+  /** The filtered pool, best credibility first; `extra` creators (the recommended ones) are always included if they fit, `onlyExtra` returns just them. */
+  private async plain(brandId: string, f: Filters, extra: string[] = [], onlyExtra = false) {
+    const swiped = (await this.swipedIds(brandId, f.opportunityId)).map((creatorId) => ({ creatorId }));
     const socialFilter: Prisma.SocialAccountWhereInput = {
       ...(f.platform && { platform: f.platform }),
       ...((f.minFollowers !== undefined || f.maxFollowers !== undefined) && {
@@ -123,7 +133,7 @@ export class DiscoveryService {
     const include = { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } } as const;
     const [picked, page] = await Promise.all([
       extra.length ? this.prisma.creatorProfile.findMany({ where: { AND: [where, { userId: { in: extra } }] }, include }) : [],
-      this.prisma.creatorProfile.findMany({ where, include, orderBy: [{ credibilityScore: 'desc' }, { userId: 'asc' }], take: f.limit }),
+      onlyExtra ? [] : this.prisma.creatorProfile.findMany({ where, include, orderBy: [{ credibilityScore: 'desc' }, { userId: 'asc' }], take: f.limit }),
     ]);
     const rows = [...picked, ...page.filter((p) => !picked.some((x) => x.userId === p.userId))];
     return {
