@@ -145,7 +145,8 @@ export class PayazaProvider implements PaymentProvider {
   }
 
   async queryPayout(reference: string) {
-    const r = await this.call('GET', `/payaza-account/api/v1/mainaccounts/transaction/status?transaction_reference=${encodeURIComponent(reference)}`);
+    // docs: Transfers > Transaction status query (the older /mainaccounts/transaction/status route now answers 404)
+    const r = await this.call('GET', `/payaza-account/api/v1/mainaccounts/merchant/transaction/${encodeURIComponent(reference)}`);
     const s = String(r?.data?.transactionStatus ?? r?.transactionStatus ?? '');
     return { status: mapPayout(s), raw: r, providerStatus: s };
   }

@@ -37,3 +37,13 @@ describe('PayazaProvider.queryFunding (card)', () => {
     await expect(provider.queryFunding('P-C-1', 'card')).resolves.toMatchObject({ status: 'successful', amountNgn: 210000 });
   });
 });
+
+describe('PayazaProvider.queryPayout', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('asks the transaction status route and maps NIP_SUCCESS to paid', async () => {
+    const fetch = reply(200, { message: 'Transaction fetched', status: true, data: { transactionReference: 'P1', transactionStatus: 'NIP_SUCCESS', responseCode: '00' } });
+    await expect(provider.queryPayout('P1')).resolves.toMatchObject({ status: 'successful', providerStatus: 'NIP_SUCCESS' });
+    expect(String(fetch.mock.calls[0][0])).toContain('/payaza-account/api/v1/mainaccounts/merchant/transaction/P1');
+  });
+});
