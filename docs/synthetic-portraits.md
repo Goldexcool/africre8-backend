@@ -1,48 +1,35 @@
-# Synthetic creator portrait pipeline
+# Shared synthetic creator portrait pool
 
-The pipeline maps each of the 500 demo-v2 creators to one fictional-adult portrait, validates a 512×512 WebP, uploads only a complete unique set to `africre8/demo/creators/`, and then updates only provenance-marked synthetic creator profiles. Generated files, credentials, manifests, and upload URL maps are local and Git-ignored.
+AfriCre8 uses a zero-cost pool of exactly 50 locally supplied fictional African creator portraits for the 500 demo-v2 creators. Each portrait serves exactly 10 synthetic profiles. Assignment is deterministic: creators are sorted by category and stable ID hash, grouped in tens, and each slot records its represented categories and common niches.
 
-## Plan and cost approval
+## Local assets and optimization
 
-The supported provider is the OpenAI Images API. Defaults are `gpt-image-1`, medium quality, 1024×1024 provider output, then local 512×512 WebP optimization. OpenAI documents an approximate $0.07 cost for a medium-quality square `gpt-image-1` image, so the configured estimate is $35 for 500, plus minor prompt-token variance. Recheck current pricing before approval: <https://openai.com/index/image-generation-api/>.
-
-```powershell
-npm run portraits:plan
-```
-
-No paid call occurs in plan mode. Generation additionally requires `OPENAI_API_KEY` and a cost ceiling at least as high as the displayed estimate:
+Supply `portrait-001` through `portrait-050` as `.png`, `.jpg`, `.jpeg`, or `.webp` under the Git-ignored directory `services/ml/generated/portrait-pool/source/`. Use fictional adults only, with no celebrity likenesses, production-user photos, logos, or watermarks. Review `npm run portrait-pool:plan` first; it reports the categories and representative niches for each slot.
 
 ```powershell
-$env:OPENAI_API_KEY = '<set locally; never commit>'
-$env:PORTRAIT_MODEL = 'gpt-image-1'
-$env:PORTRAIT_QUALITY = 'medium'
-$env:PORTRAIT_CONCURRENCY = '2'
-npm run portraits:generate -- --approve-max-usd=35
-npm run portraits:verify
+npm run portrait-pool:plan
+npm run portrait-pool:optimize
+npm run portrait-pool:verify
 ```
 
-The resumable manifest is `services/ml/generated/portraits/manifest.json`. Successful files are skipped on rerun. The generator retries provider failures up to five times, honors `Retry-After`, and otherwise uses exponential backoff. Verification rejects missing/corrupt files, non-WebP content, dimensions other than 512×512, and duplicate SHA-256 hashes. Sharp starts at WebP quality 84 and reduces quality when needed to target at most 150 KB; the preferred 50–150 KB range is reported rather than achieved by artificial padding.
+Optimization produces 512×512 WebP files under `services/ml/generated/portrait-pool/optimized/`. Verification requires 50 valid, distinct content hashes and 500 balanced assignments. Source files, optimized files, and the local manifest are excluded from Git.
 
-At the requested 50–150 KB range, 500 images should occupy approximately 25–75 MB before storage-provider overhead. This is an estimate until real outputs exist. Technical verification cannot prove that a face is fictional or rule out resemblance to every real person; review generated contact sheets or samples for composition, artifacts, stereotypes, accidental text/logos, and recognizable likenesses before upload.
+## R2 and display overrides
 
-## R2 upload and database activation
-
-Configure the existing R2 variables locally. Upload is refused unless all 500 files are valid and unique and both the switch and confirmation phrase are present:
+Validated objects use stable keys `africre8/demo/portrait-pool/portrait-001.webp` through `portrait-050.webp`. Upload is disabled unless all 50 assets pass verification and the administrator supplies the explicit switch and confirmation:
 
 ```powershell
-$env:PORTRAIT_R2_UPLOAD_ENABLED = 'true'
-npm run portraits:upload -- --confirm-upload=UPLOAD_VALIDATED_SYNTHETIC_PORTRAITS
-$env:PORTRAIT_R2_UPLOAD_ENABLED = 'false'
+$env:PORTRAIT_POOL_R2_UPLOAD_ENABLED = 'true'
+npm run portrait-pool:upload -- --confirm-upload=UPLOAD_VALIDATED_50_PORTRAITS
+$env:PORTRAIT_POOL_R2_UPLOAD_ENABLED = 'false'
 ```
 
-Objects use `image/webp`, immutable caching, content hashes, and stable keys. Upload state is saved after each object so a retry does not repeat completed uploads.
-
-After verifying several `/media/africre8/demo/creators/<creator-id>.webp` URLs, apply URLs to a confirmed database target. The command resolves creators through synthetic consolidation provenance and cannot select retained production creators:
+After sampled media URLs work, apply the pool to a fingerprint-confirmed database. This writes `CreatorMlProfile.displayImageOverrideUrl`; it never changes `CreatorProfile.avatarUrl` or portfolio data. A separately reviewed `{ creatorId: portraitId }` JSON map can supply demo-only retained-production overrides through `--production-overrides=<path>`.
 
 ```powershell
-$env:PORTRAIT_DATABASE_APPLY_ENABLED = 'true'
-npm run portraits:apply-db -- --confirm-target-fingerprint=<reviewed-fingerprint> --confirm-apply=APPLY_UPLOADED_SYNTHETIC_PORTRAITS
-$env:PORTRAIT_DATABASE_APPLY_ENABLED = 'false'
+$env:PORTRAIT_POOL_DATABASE_APPLY_ENABLED = 'true'
+npm run portrait-pool:apply-db -- --confirm-target-fingerprint=<reviewed-fingerprint> --confirm-apply=APPLY_50_PORTRAIT_POOL
+$env:PORTRAIT_POOL_DATABASE_APPLY_ENABLED = 'false'
 ```
 
-Keep the SVG route as the default until upload and activation finish. Do not set database URLs to local file paths. Production R2 and Railway execution require separate administrator approval.
+Creator-card responses resolve the display override first and otherwise return the stored avatar or SVG fallback. The previous 500-image OpenAI pipeline remains for potential future use, but paid generation additionally requires `PORTRAIT_INDIVIDUAL_GENERATION_ENABLED=true` and `--confirm-individual-generation=GENERATE_500_INDIVIDUAL_PORTRAITS`. Keep it disabled for the shared-pool workflow.

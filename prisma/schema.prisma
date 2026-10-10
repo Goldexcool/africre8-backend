@@ -201,6 +201,7 @@ model CreatorMlProfile {
   productionCapabilities String[]
   typicalLeadTimeDays    Int?
   imageAssetId           String?
+  displayImageOverrideUrl String?
   sourceAvailability     String?
   commercialExperience   Json?
   featureProvenance      Json?

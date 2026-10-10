@@ -64,6 +64,7 @@ try {
         OR: [
           { avatarUrl: { startsWith: `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/demo-media/creators/` } },
           { avatarUrl: { startsWith: `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/media/africre8/demo/creators/` } },
+          { avatarUrl: { startsWith: `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/media/africre8/demo/portrait-pool/` } },
         ],
       },
     }),

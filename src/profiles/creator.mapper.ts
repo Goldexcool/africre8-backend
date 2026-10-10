@@ -1,12 +1,12 @@
 import type { CreatorProfile, SocialAccount } from '../generated/prisma/client.js';
 
 /** Shape the mobile app's `Creator` card expects (src/types/creator.ts). */
-export function toCreatorCard(p: CreatorProfile & { socials: SocialAccount[] }) {
+export function toCreatorCard(p: CreatorProfile & { socials: SocialAccount[]; mlProfile?: { displayImageOverrideUrl: string | null } | null }) {
   const best = p.socials.reduce<SocialAccount | undefined>((a, s) => (!a || s.followers > a.followers ? s : a), undefined);
   return {
     id: p.userId,
     name: p.displayName,
-    avatarUrl: p.avatarUrl ?? '',
+    avatarUrl: p.mlProfile?.displayImageOverrideUrl ?? p.avatarUrl ?? '',
     bio: p.bio ?? '',
     location: p.location ?? '',
     category: p.category ?? '',

@@ -18,7 +18,7 @@ ML_SEMANTIC_TIMEOUT_MS=120000
 
 Set `PUBLIC_URL` to the externally reachable HTTPS origin of the NestJS Railway service. Synthetic creator placeholders are served at `/demo-media/creators/<source-id>.svg`; no R2 credentials or object writes are required for them. Existing production `avatarUrl` and `portfolio` values remain unchanged and continue to depend on the configured Cloudflare R2 service and `/media/*` proxy.
 
-For photorealistic synthetic portraits, complete and verify the offline workflow in `docs/synthetic-portraits.md` before any Railway action. Upload all 500 optimized WebP files to the separate `africre8/demo/creators/` R2 namespace, verify sample media URLs, then run the fingerprint-confirmed database activation command. Never copy a production creator's object key to a synthetic identity.
+For synthetic portraits, complete and verify the offline 50-image pool workflow in `docs/synthetic-portraits.md` before any Railway action. Upload the 50 optimized WebP files to `africre8/demo/portrait-pool/`, verify sample media URLs, then run the fingerprint-confirmed display-override activation. Never copy a production creator's object key to a synthetic identity or overwrite a retained production avatar.
 
 1. In Railway, record the project, environment, PostgreSQL service name, database name, service ID, and volume ID. Have a second administrator confirm them.
 2. Record baseline counts for users, creators, brands, opportunities, interests, matches, campaigns, submissions, disputes, transactions, notifications, and Prisma migrations.

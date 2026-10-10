@@ -36,6 +36,11 @@
     "portraits:verify": "node --import tsx scripts/portraits/cli.ts verify",
     "portraits:upload": "node --import tsx scripts/portraits/cli.ts upload",
     "portraits:apply-db": "node --import tsx scripts/portraits/cli.ts apply-db",
+    "portrait-pool:plan": "node --import tsx scripts/portrait-pool/cli.ts plan",
+    "portrait-pool:optimize": "node --import tsx scripts/portrait-pool/cli.ts optimize",
+    "portrait-pool:verify": "node --import tsx scripts/portrait-pool/cli.ts verify",
+    "portrait-pool:upload": "node --import tsx scripts/portrait-pool/cli.ts upload",
+    "portrait-pool:apply-db": "node --import tsx scripts/portrait-pool/cli.ts apply-db",
     "start:worker": "node dist/worker.js",
     "dev:worker": "nest start --watch --entryFile worker"
   },

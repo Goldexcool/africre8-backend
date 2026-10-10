@@ -155,6 +155,7 @@ if (mode === 'plan') {
   if (report.validUnique !== 500 || report.failures.length)
     process.exitCode = 2;
 } else if (mode === 'generate') {
+  if (process.env.PORTRAIT_INDIVIDUAL_GENERATION_ENABLED !== 'true' || arg('--confirm-individual-generation') !== 'GENERATE_500_INDIVIDUAL_PORTRAITS') throw new Error('individual paid generation is disabled by default');
   const approved = Number(arg('--approve-max-usd'));
   if (!process.env.OPENAI_API_KEY)
     throw new Error('OPENAI_API_KEY is required');
