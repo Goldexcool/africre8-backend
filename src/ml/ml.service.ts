@@ -6,6 +6,7 @@ import {
 import type { AuthUser } from '../common/auth.decorators.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { MlClient } from './ml.client.js';
+import { MlSyncService } from './ml-sync.service.js';
 import {
   mapCreatorToMl,
   mapEvidenceToMl,
@@ -26,6 +27,7 @@ export class MlService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: MlClient,
+    private readonly sync: MlSyncService,
   ) {}
 
   async recommend(
@@ -34,17 +36,22 @@ export class MlService {
     input: RecommendationInput,
     requestId?: string,
   ) {
-    const opportunity = await this.prisma.opportunity.findUnique({
+    const owned = await this.prisma.opportunity.findUnique({ where: { id: opportunityId }, select: { brandId: true, status: true } });
+    if (!owned || owned.brandId !== brandId)
+      throw new NotFoundException('Campaign brief not found');
+    if (owned.status === 'CLOSED')
+      throw new ConflictException('This campaign is closed');
+    // Briefs are synced here rather than on save: this also covers briefs written before the sync existed,
+    // and a brand's later industry change. Unchanged briefs are a hash comparison.
+    const missing = await this.sync.syncOpportunity(opportunityId);
+    await this.backfillCreators();
+    const opportunity = await this.prisma.opportunity.findUniqueOrThrow({
       where: { id: opportunityId },
       include: { mlProfile: true },
     });
-    if (!opportunity || opportunity.brandId !== brandId)
-      throw new NotFoundException('Campaign brief not found');
-    if (opportunity.status === 'CLOSED')
-      throw new ConflictException('This campaign is closed');
     if (!opportunity.mlProfile)
       throw new ConflictException(
-        'This campaign does not have recommendation features yet',
+        missing ?? 'This campaign does not have recommendation features yet',
       );
 
     const rows = await this.prisma.creatorMlProfile.findMany({
@@ -98,6 +105,20 @@ export class MlService {
       warnings: response.warnings,
       latencyMs: response.latency_ms,
     };
+  }
+
+  /**
+   * Creators who have not saved their profile since the live sync existed have no ML profile yet, so they would
+   * never be recommended. Fill those in, a bounded batch per request.
+   * ponytail: request-time backfill; replace with a one-off `npm run ml:enrich` once production has been enriched.
+   */
+  private async backfillCreators() {
+    const pending = await this.prisma.creatorProfile.findMany({
+      where: { mlProfile: null, user: { status: 'ACTIVE', onboardedAt: { not: null }, openToInvites: true } },
+      select: { userId: true },
+      take: 100,
+    });
+    for (const { userId } of pending) await this.sync.syncCreator(userId);
   }
 
   async credibility(user: AuthUser, creatorId: string, requestId?: string) {

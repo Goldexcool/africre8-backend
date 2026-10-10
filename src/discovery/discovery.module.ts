@@ -1,9 +1,11 @@
-import { Body, ConflictException, Controller, Delete, Get, HttpCode, Injectable, Module, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, ConflictException, Controller, Delete, Get, HttpCode, HttpException, Injectable, Logger, Module, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { CurrentUser, Roles, type AuthUser } from '../common/auth.decorators.js';
 import { OnboardedGuard } from '../common/onboarded.guard.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import type { Prisma } from '../generated/prisma/client.js';
+import { MlModule } from '../ml/ml.module.js';
+import { MlService } from '../ml/ml.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { toCreatorCard } from '../profiles/creator.mapper.js';
@@ -42,12 +44,61 @@ const scope = (opportunityId?: string) => opportunityId ?? 'general';
 
 @Injectable()
 export class DiscoveryService {
+  private readonly log = new Logger(DiscoveryService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly ml: MlService,
   ) {}
 
+  /**
+   * Creators for the deck. With a brief, the recommender ranks them by default: recommended creators come first in
+   * model order with their match and credibility, then everyone else who fits the filters. When the recommender
+   * cannot rank (no platform in the brief, ML service down) the usual order is used and `ranking` says why.
+   */
   async discover(brandId: string, f: Filters) {
+    if (!f.opportunityId) return { ...(await this.plain(brandId, f)), ranking: { source: 'default' as const } };
+    let recommended: Awaited<ReturnType<MlService['recommend']>>['organic'] = [];
+    let note: string | undefined;
+    let model: { mode: string; version: string } | undefined;
+    try {
+      const r = await this.ml.recommend(brandId, f.opportunityId, { mode: 'structured', limit: 50, includeExcluded: false, includeCredibility: true });
+      recommended = r.organic;
+      model = r.model;
+    } catch (e) {
+      if (e instanceof NotFoundException) throw e; // not this brand's brief
+      note = e instanceof HttpException && e.getStatus() < 500 ? e.message : 'Recommendations are unavailable right now, so creators are shown in the usual order.';
+      if (!(e instanceof HttpException) || e.getStatus() >= 500) this.log.warn(`recommendations for ${f.opportunityId}: ${(e as Error).message}`);
+    }
+    const base = await this.plain(brandId, f, recommended.map((r) => r.creator_id));
+    const byId = new Map(recommended.map((r) => [r.creator_id, r]));
+    const ranked = base.items
+      .map((card) => {
+        const r = byId.get(card.id);
+        return {
+          ...card,
+          match: r
+            ? {
+                rank: r.rank,
+                score: r.score,
+                summary: r.explanation.summary,
+                credibility: r.credibility ? { status: r.credibility.status, score: r.credibility.credibility_score, tier: r.credibility.evidence_tier } : null,
+              }
+            : null,
+        };
+      })
+      .sort((a, b) => (a.match?.rank ?? Infinity) - (b.match?.rank ?? Infinity))
+      .slice(0, f.limit);
+    return {
+      items: ranked,
+      message: base.message,
+      ranking: recommended.length ? { source: 'recommender' as const, model } : { source: 'default' as const, note: note ?? 'No creators matched this brief yet, so creators are shown in the usual order.' },
+    };
+  }
+
+  /** The filtered pool, best credibility first; `extra` creators (the recommended ones) are always included if they fit. */
+  private async plain(brandId: string, f: Filters, extra: string[] = []) {
     const swiped = await this.prisma.swipe.findMany({ where: { brandId, scopeKey: scope(f.opportunityId) }, select: { creatorId: true } });
     const socialFilter: Prisma.SocialAccountWhereInput = {
       ...(f.platform && { platform: f.platform }),
@@ -56,22 +107,23 @@ export class DiscoveryService {
       }),
       ...(f.minEngagement !== undefined && { engagementRate: { gte: f.minEngagement } }),
     };
-    const rows = await this.prisma.creatorProfile.findMany({
-      where: {
-        userId: { notIn: swiped.map((s) => s.creatorId) },
-        user: { status: 'ACTIVE', onboardedAt: { not: null }, openToInvites: true },
-        // Booked creators are not offered for new campaigns unless explicitly asked for.
-        availability: f.availability ?? { not: 'booked' },
-        ...(f.category && { category: f.category }),
-        ...(f.location && { location: { contains: f.location, mode: 'insensitive' } }),
-        ...(f.budgetMaxNgn !== undefined && { priceFromKobo: { lte: f.budgetMaxNgn * 100 } }),
-        ...(f.minCredibility !== undefined && { credibilityScore: { gte: f.minCredibility } }),
-        ...(Object.keys(socialFilter).length && { socials: { some: socialFilter } }),
-      },
-      include: { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } },
-      orderBy: [{ credibilityScore: 'desc' }, { userId: 'asc' }],
-      take: f.limit,
-    });
+    const where: Prisma.CreatorProfileWhereInput = {
+      userId: { notIn: swiped.map((s) => s.creatorId) },
+      user: { status: 'ACTIVE', onboardedAt: { not: null }, openToInvites: true },
+      // Booked creators are not offered for new campaigns unless explicitly asked for.
+      availability: f.availability ?? { not: 'booked' },
+      ...(f.category && { category: f.category }),
+      ...(f.location && { location: { contains: f.location, mode: 'insensitive' } }),
+      ...(f.budgetMaxNgn !== undefined && { priceFromKobo: { lte: f.budgetMaxNgn * 100 } }),
+      ...(f.minCredibility !== undefined && { credibilityScore: { gte: f.minCredibility } }),
+      ...(Object.keys(socialFilter).length && { socials: { some: socialFilter } }),
+    };
+    const include = { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } } as const;
+    const [picked, page] = await Promise.all([
+      extra.length ? this.prisma.creatorProfile.findMany({ where: { AND: [where, { userId: { in: extra } }] }, include }) : [],
+      this.prisma.creatorProfile.findMany({ where, include, orderBy: [{ credibilityScore: 'desc' }, { userId: 'asc' }], take: f.limit }),
+    ]);
+    const rows = [...picked, ...page.filter((p) => !picked.some((x) => x.userId === p.userId))];
     return {
       items: rows.map(toCreatorCard),
       message: rows.length ? undefined : "We couldn't find creators matching your criteria. Try adjusting your filters.",
@@ -174,5 +226,5 @@ class DiscoveryController {
   }
 }
 
-@Module({ controllers: [DiscoveryController], providers: [DiscoveryService] })
+@Module({ imports: [MlModule], controllers: [DiscoveryController], providers: [DiscoveryService] })
 export class DiscoveryModule {}

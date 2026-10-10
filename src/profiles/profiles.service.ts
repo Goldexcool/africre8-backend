@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { MlSyncService } from '../ml/ml-sync.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { toCreatorCard } from './creator.mapper.js';
 import type { BrandInput, CreatorInput, PayoutInput } from './profiles.schemas.js';
 
 @Injectable()
 export class ProfilesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mlSync: MlSyncService,
+  ) {}
 
   async upsertCreator(userId: string, { socials, openToInvites, ...input }: CreatorInput) {
     if (openToInvites !== undefined) await this.prisma.user.update({ where: { id: userId }, data: { openToInvites } });
@@ -28,6 +32,7 @@ export class ProfilesService {
         await tx.user.updateMany({ where: { id: userId, onboardedAt: null }, data: { onboardedAt: new Date() } });
       }
     });
+    await this.mlSync.syncCreator(userId); // recommendations see the change straight away
     return this.creatorCard(userId);
   }
 

@@ -99,14 +99,18 @@ const response = {
   warnings: [],
 };
 
+// the live ML sync is covered on its own; here it reports nothing to fix
+const sync = { syncOpportunity: vi.fn().mockResolvedValue(null), syncCreator: vi.fn() } as any;
+
 describe('MlService', () => {
   it('keeps organic scores unchanged and sponsored placements separate', async () => {
     const prisma = {
-      opportunity: { findUnique: vi.fn().mockResolvedValue(opportunity) },
+      opportunity: { findUnique: vi.fn().mockResolvedValue(opportunity), findUniqueOrThrow: vi.fn().mockResolvedValue(opportunity) },
       creatorMlProfile: { findMany: vi.fn().mockResolvedValue([creator]) },
+      creatorProfile: { findMany: vi.fn().mockResolvedValue([]) },
     } as any;
     const client = { recommend: vi.fn().mockResolvedValue(response) } as any;
-    const result = await new MlService(prisma, client).recommend(
+    const result = await new MlService(prisma, client, sync).recommend(
       'brand-1',
       'opportunity-1',
       {
@@ -127,7 +131,7 @@ describe('MlService', () => {
       opportunity: { findUnique: vi.fn().mockResolvedValue(opportunity) },
     } as any;
     await expect(
-      new MlService(prisma, {} as any).recommend(
+      new MlService(prisma, {} as any, sync).recommend(
         'other-brand',
         'opportunity-1',
         {
@@ -171,7 +175,7 @@ describe('MlService', () => {
           model_version: 'v1',
         }),
     } as any;
-    await new MlService(prisma, client).credibility(
+    await new MlService(prisma, client, sync).credibility(
       { id: 'brand-1', role: 'BRAND' },
       'creator-1',
     );
