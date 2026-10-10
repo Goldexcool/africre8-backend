@@ -23,6 +23,15 @@ describe('PayazaProvider.queryFunding (card)', () => {
     await expect(provider.queryFunding('R', 'card')).resolves.toMatchObject({ status: 'successful' });
   });
 
+  it('bank transfer: falls back to the next partner bank when one cannot issue an account', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: false, message: 'Virtual account not generated, please try again' }), { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: { account_number: '7000173906', account_name: 'Payaza(AfiCre8 Campaign)', bank_name: '78 FINANCE', transaction_amount_payable: 210000 } }), { status: 200 }));
+    const out = await provider.createFunding({ reference: 'R', amountNgn: 210000, method: 'bank_transfer', customer: { email: 'a@b.c', firstName: 'A', lastName: 'B' }, description: 'd' });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(out).toMatchObject({ method: 'bank_transfer', accountNumber: '7000173906' });
+  });
+
   it('reports what was paid, as Payaza returns it for a checkout looked up by its own id', async () => {
     reply(200, { response_code: 200, response_message: 'Transaction data found', response_content: { transaction_reference: 'P-C-1', transaction_amount: 210000.0, transaction_status: 'Completed' } });
     await expect(provider.queryFunding('P-C-1', 'card')).resolves.toMatchObject({ status: 'successful', amountNgn: 210000 });

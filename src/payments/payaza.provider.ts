@@ -3,7 +3,8 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { BankTransferInstructions, Customer, FundingInstructions, PaymentProvider, ProviderStatus } from './provider.js';
 
 const BASE = 'https://api.payaza.africa/live';
-const DVA_BANK_CODE = '140'; // Globus; Payaza also offers 1067 (78 Finance) and 117 (Fidelity)
+/** Partner banks for dynamic virtual accounts, tried in order: on 2026-10-10 the sandbox only issued 1067 (78 Finance). */
+const DVA_BANK_CODES = ['1067', '140', '117']; // 78 Finance, Globus, Fidelity
 
 // Docs: https://docs.payaza.africa (virtual accounts, card status, transfers, webhooks)
 export class PayazaProvider implements PaymentProvider {
@@ -45,22 +46,28 @@ export class PayazaProvider implements PaymentProvider {
       // Hosted page (served by us) that opens the Payaza Checkout SDK; confirmation still comes from status re-query.
       return { method: 'card', checkoutUrl: `${this.cfg.publicUrl}/pay/${reference}`, amountNgn };
     }
-    const r = await this.call('POST', '/merchant-collection/merchant/virtual_account/generate_virtual_account', {
-      account_name: 'AfiCre8 Campaign',
-      account_type: 'Dynamic',
-      bank_code: DVA_BANK_CODE,
-      bvn: '',
-      has_amount_validation: 'true',
-      account_reference: reference,
-      customer_first_name: customer.firstName,
-      customer_last_name: customer.lastName,
-      customer_email: customer.email,
-      customer_phone_number: customer.phone ?? '08000000000',
-      transaction_description: description.slice(0, 100),
-      transaction_amount: String(amountNgn),
-      expires_in_minutes: '60',
-    });
-    if (!r.success) throw new BadGatewayException(r.message ?? 'Could not create virtual account');
+    // A partner bank that is down answers 400 "Virtual account not generated"; try the next one.
+    let r: any;
+    for (const bank_code of DVA_BANK_CODES) {
+      r = await this.call('POST', '/merchant-collection/merchant/virtual_account/generate_virtual_account', {
+        account_name: 'AfiCre8 Campaign',
+        account_type: 'Dynamic',
+        bank_code,
+        bvn: '',
+        has_amount_validation: 'true',
+        account_reference: reference,
+        customer_first_name: customer.firstName,
+        customer_last_name: customer.lastName,
+        customer_email: customer.email,
+        customer_phone_number: customer.phone ?? '08000000000',
+        transaction_description: description.slice(0, 100),
+        transaction_amount: String(amountNgn),
+        expires_in_minutes: '60',
+      }, true);
+      if (r?.success) break;
+      this.log.warn(`virtual account via bank ${bank_code}: ${r?.message ?? 'failed'}`);
+    }
+    if (!r?.success) throw new BadGatewayException(r.message ?? 'Could not create virtual account');
     return {
       method: 'bank_transfer',
       accountNumber: r.data.account_number,
