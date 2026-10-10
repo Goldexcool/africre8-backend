@@ -11,8 +11,8 @@ const MAX_ATTEMPTS = 5;
 export const CODE_LENGTH = 4; // matches the mobile CodeInput
 
 const COPY: Record<OtpPurpose, { subject: string; heading: string; body: string }> = {
-  VERIFY_EMAIL: { subject: 'Your AfiCre8 verification code', heading: 'Confirm your email', body: 'Enter this code in the app to verify your email address.' },
-  RESET_PASSWORD: { subject: 'Reset your AfiCre8 password', heading: 'Reset your password', body: 'Enter this code in the app to choose a new password.' },
+  VERIFY_EMAIL: { subject: 'is your AfiCre8 verification code', heading: 'Confirm your email', body: 'Enter this code in the app to verify your email address.' },
+  RESET_PASSWORD: { subject: 'is your AfiCre8 password reset code', heading: 'Reset your password', body: 'Enter this code in the app to choose a new password.' },
 };
 
 @Injectable()
@@ -29,7 +29,7 @@ export class OtpService {
       this.prisma.otpCode.updateMany({ where: { userId: user.id, purpose, consumedAt: null }, data: { consumedAt: new Date() } }),
       this.prisma.otpCode.create({ data: { userId: user.id, purpose, codeHash: await bcrypt.hash(code, 8), expiresAt: new Date(Date.now() + TTL_MS) } }),
     ]);
-    await this.mail.send({ to: user.email, ...COPY[purpose], code });
+    await this.mail.send({ to: user.email, ...COPY[purpose], subject: `${code} ${COPY[purpose].subject}`, code }); // code first: it shows in the inbox preview
   }
 
   /** Checks a code; `consume` burns it. Wrong guesses count against a small attempt limit. */

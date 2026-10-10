@@ -1,23 +1,12 @@
-import { Global, Injectable, Logger, Module } from '@nestjs/common';
+import { Controller, Get, Global, Injectable, Logger, Module, Res } from '@nestjs/common';
+import type { Response } from 'express';
+import sharp from 'sharp';
+import { Public } from '../common/auth.decorators.js';
+import { LOGO_SVG, renderHtml, renderText, type Mail } from './mail.template.js';
 
-export type Mail = { to: string; subject: string; heading: string; body: string; code?: string; cta?: { label: string; url: string } };
+export type { Mail };
 
 const TEST_DOMAIN = /@(?:[a-z0-9-]+\.)*africre8\.dev$/i;
-
-const esc =(s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-
-function render(m: Mail) {
-  return `<!doctype html><html><body style="margin:0;background:#f6f1ea;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1410">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
-<table width="100%" style="max-width:480px;background:#ffffff;border-radius:20px;padding:32px" cellpadding="0" cellspacing="0">
-<tr><td style="font-weight:800;font-size:20px;letter-spacing:-.02em;color:#ff6a2b">AfiCre8</td></tr>
-<tr><td style="padding-top:24px;font-size:22px;font-weight:700">${esc(m.heading)}</td></tr>
-<tr><td style="padding-top:12px;font-size:16px;line-height:1.55;color:#4a4038">${esc(m.body)}</td></tr>
-${m.code ? `<tr><td style="padding-top:24px"><div style="font-size:36px;font-weight:800;letter-spacing:.35em;background:#f6f1ea;border-radius:14px;padding:18px;text-align:center">${esc(m.code)}</div><div style="padding-top:8px;font-size:13px;color:#8a7f74">Expires in 15 minutes. If you didn't ask for this, ignore this email.</div></td></tr>` : ''}
-${m.cta ? `<tr><td style="padding-top:24px"><a href="${esc(m.cta.url)}" style="display:inline-block;background:#ff6a2b;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:12px">${esc(m.cta.label)}</a></td></tr>` : ''}
-</table><div style="padding-top:16px;font-size:12px;color:#8a7f74">Payment-protected creator collaborations · Payments by Payaza</div>
-</td></tr></table></body></html>`;
-}
 
 /** Transactional email through Brevo. Without BREVO_API_KEY (tests/local) mail is kept in `outbox` instead. */
 @Injectable()
@@ -41,7 +30,8 @@ export class MailService {
           sender: { name: process.env.MAIL_FROM_NAME ?? 'AfiCre8', email: process.env.MAIL_FROM_EMAIL },
           to: [{ email: m.to }],
           subject: m.subject,
-          htmlContent: render(m),
+          htmlContent: renderHtml(m),
+          textContent: renderText(m),
         }),
         signal: AbortSignal.timeout(15_000),
       });
@@ -53,6 +43,19 @@ export class MailService {
   }
 }
 
+/** The logo emails show (mail clients don't render SVG), rendered once from the app's mark at 3x. */
+let logoPng: Promise<Buffer> | null = null;
+
+@Controller('email')
+class MailAssetsController {
+  @Public()
+  @Get('logo.png')
+  async logo(@Res() res: Response) {
+    logoPng ??= sharp(Buffer.from(LOGO_SVG)).resize(123, 60).png().toBuffer();
+    res.set({ 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' }).send(await logoPng);
+  }
+}
+
 @Global()
-@Module({ providers: [MailService], exports: [MailService] })
+@Module({ controllers: [MailAssetsController], providers: [MailService], exports: [MailService] })
 export class MailModule {}
