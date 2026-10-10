@@ -11,6 +11,8 @@ import { PAYMENT_PROVIDER, type BankTransferInstructions, type PaymentProvider }
 const naira = (kobo: number) => kobo / 100;
 const fmt = (kobo: number) => `₦${naira(kobo).toLocaleString('en-NG')}`;
 const ref = (prefix: string) => `AFC${prefix}${Date.now().toString(36).toUpperCase()}${randomBytes(3).toString('hex').toUpperCase()}`;
+const PAYOUT_RETRY_EVERY_MS = 30 * 60_000;
+const PAYOUT_RETRY_WINDOW_MS = 24 * 60 * 60_000;
 const CARD_CHECKOUT_TTL_MS = 24 * 60 * 60_000; // an unpaid Payaza card checkout never completes after this
 
 @Injectable()
@@ -94,8 +96,11 @@ export class PaymentsService {
 
   // ---------- Payout ----------
 
-  /** Releases the agreed amount to the creator. Only from `approved` (or retry from `payout_failed`). */
-  async payout(campaignId: string, actorId?: string) {
+  /**
+   * Releases the agreed amount to the creator. Only from `approved` (or retry from `payout_failed`). `quiet`: an
+   * automatic retry; a refusal is not announced again (the first failure already told both sides).
+   */
+  async payout(campaignId: string, actorId?: string, opts: { quiet?: boolean } = {}) {
     const c = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
     if (!c) throw new NotFoundException('Campaign not found');
     if (!['approved', 'payout_failed'].includes(c.status)) throw wrongStage(c.status);
@@ -139,7 +144,7 @@ export class PaymentsService {
         narration: `AfiCre8 ${c.title}`,
       });
       if (r.status === 'failed') {
-        await this.settle(tx.id, 'failed', r.providerStatus, r.raw);
+        await this.settle(tx.id, 'failed', r.providerStatus, r.raw, opts.quiet);
       } else {
         await this.prisma.transaction.update({
           where: { id: tx.id },
@@ -150,7 +155,7 @@ export class PaymentsService {
     } catch (e) {
       // Provider rejected the request outright: nothing left Payaza, so the payout is failed (retryable).
       this.log.error(`Payout ${reference} failed to start: ${(e as Error).message}`);
-      await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
+      await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message }, opts.quiet);
       // the creator, the brand and the admin console all read this ("Payaza's transfer limit was reached ...")
       await this.prisma.transaction.update({ where: { id: tx.id }, data: { failureReason: payoutFailure((e as Error).message).reason } });
     }
@@ -209,6 +214,23 @@ export class PaymentsService {
       await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
     }
     return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
+  }
+
+  /**
+   * Retries payouts the provider refused for a reason AfiCre8 can't fix by hand right away (a transfer limit, an outage):
+   * every 30 minutes, for 24 hours after the first refusal. Rejected bank details are left for the creator (saving
+   * them retries). Goes through `payout`, so it can never make a second live payout. Run by the worker.
+   * ponytail: fixed 30-minute spacing; move to backoff if Payaza ever rate-limits these.
+   */
+  async retryFailedPayouts(now = Date.now()) {
+    const stuck = await this.prisma.campaign.findMany({ where: { status: 'payout_failed' }, select: { id: true }, take: 20 });
+    let retried = 0;
+    for (const { id } of stuck) {
+      const tries = await this.prisma.transaction.findMany({ where: { campaignId: id, kind: 'PAYOUT' }, orderBy: { createdAt: 'asc' }, select: { createdAt: true, failureReason: true } });
+      if (!shouldRetryPayout(tries, now)) continue;
+      await this.payout(id, undefined, { quiet: true }).then(() => retried++, (e) => this.log.warn(`payout retry ${id}: ${(e as Error).message}`));
+    }
+    return retried;
   }
 
   /** Funded work nobody delivered by the deadline plus a grace period goes back to the brand. Run by the worker. */
@@ -275,7 +297,7 @@ export class PaymentsService {
   }
 
   /** Applies a final provider status exactly once (compare-and-set on the transaction status). */
-  private async settle(transactionId: string, status: 'successful' | 'failed', providerStatus?: string, raw?: unknown) {
+  private async settle(transactionId: string, status: 'successful' | 'failed', providerStatus?: string, raw?: unknown, quiet = false) {
     const result = await this.prisma.$transaction(async (db) => {
       const tx = await db.transaction.findUniqueOrThrow({ where: { id: transactionId } });
       const claimed = await db.transaction.updateMany({
@@ -317,7 +339,7 @@ export class PaymentsService {
     } else if (status === 'successful') {
       await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payment successful', body: `${fmt(c.amountKobo)} paid for “${c.title}”. Ref ${tx.payazaReference}.`, linkTo: `/transaction/${tx.id}` });
       await this.notifications.notify(c.brandId, { kind: 'payout', title: 'Payout completed', body: `“${c.title}” is complete.`, linkTo: `/campaigns/${c.id}` });
-    } else {
+    } else if (!quiet) {
       // Say what actually went wrong: a bank detail the creator can fix, or a provider limit only AfiCre8 can fix.
       const why = payoutFailure(String((raw as { error?: unknown; response_message?: unknown } | undefined)?.error ?? (raw as { response_message?: unknown } | undefined)?.response_message ?? ''));
       const amount = fmt(tx.amountKobo);
@@ -441,4 +463,16 @@ export function payoutFailure(providerMessage: string) {
     creator: (amount: string, title: string) => `The transfer of your ${amount} for “${title}” didn't go through. Your money is safe and we'll retry; you don't need to do anything.`,
     brand: (amount: string, title: string) => `The ${amount} payout for “${title}” didn't go through on the first try. Nothing more is charged to you; we'll retry.`,
   };
+}
+
+/**
+ * Retry a refused payout now? Not when the bank rejected the creator's details (theirs to fix; saving them retries),
+ * at most every 30 minutes, and only within 24 hours of the first refusal. `tries`: the campaign's payouts, oldest first.
+ */
+export function shouldRetryPayout(tries: { createdAt: Date; failureReason: string | null }[], now: number) {
+  const first = tries[0];
+  const last = tries.at(-1);
+  if (!first || !last) return false;
+  if (/bank did not accept/i.test(last.failureReason ?? '')) return false;
+  return now - first.createdAt.getTime() <= PAYOUT_RETRY_WINDOW_MS && now - last.createdAt.getTime() >= PAYOUT_RETRY_EVERY_MS;
 }
