@@ -1,0 +1,16 @@
+.venv/
+.venv.*/
+__pycache__/
+*.pyc
+.cache/
+data/
+huggingface/
+tests/
+models/
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.joblib
+*.pkl
