@@ -9,6 +9,8 @@ import { CampaignStateMachine } from './state-machine.js';
 
 const FEE_BPS = Number(process.env.PLATFORM_FEE_BPS || 800); // 8% platform fee, paid by the brand on top
 const EDITABLE: CampaignStatus[] = ['pending_agreement', 'awaiting_funding'];
+/** Once the work is approved (or the campaign ended), the same brand and creator can start their next campaign. */
+export const NEXT_CAMPAIGN_ALLOWED: CampaignStatus[] = ['approved', 'payout_processing', 'payout_failed', 'completed', 'cancelled', 'refunded'];
 const normTag = (t: string, p: string) => (t.startsWith(p) ? t : p + t).toLowerCase();
 
 const termsData = (t: TermsInput) => ({
@@ -41,8 +43,9 @@ export class CampaignsService {
   async create(brandId: string, input: CreateInput) {
     const match = await this.prisma.match.findUnique({ where: { id: input.matchId }, include: { conversation: true } });
     if (!match || match.brandId !== brandId) throw new NotFoundException('Match not found');
-    const open = await this.prisma.campaign.findFirst({ where: { matchId: match.id, status: { not: 'completed' } } });
-    if (open) throw new ConflictException('This match already has an open campaign');
+    // A brand can keep working with the same creator: a new campaign can start once the last one is approved or over.
+    const open = await this.prisma.campaign.findFirst({ where: { matchId: match.id, status: { notIn: NEXT_CAMPAIGN_ALLOWED } } });
+    if (open) throw new ConflictException('Finish the current campaign with this creator first: a new one can start once it is approved.');
 
     const campaign = await this.prisma.$transaction(async (tx) => {
       const c = await tx.campaign.create({
