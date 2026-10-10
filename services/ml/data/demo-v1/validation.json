@@ -1,0 +1,23 @@
+{
+  "accepted_fulfillments": 150,
+  "contracted_campaigns": 432,
+  "counts": {
+    "creators": 500,
+    "images": 500,
+    "interactions": 3000,
+    "opportunities": 150
+  },
+  "creators_without_history": 265,
+  "event_types": {
+    "contract": 432,
+    "dispute": 83,
+    "invitation": 698,
+    "match": 570,
+    "negotiation": 508,
+    "rating": 102,
+    "submission": 377,
+    "verified_outcome": 230
+  },
+  "journeys": 698,
+  "valid": true
+}

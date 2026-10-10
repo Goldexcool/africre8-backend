@@ -24,6 +24,7 @@ export const ErrorCode = {
   InvalidCode: 'INVALID_CODE',
   TotpRequired: 'TOTP_REQUIRED',
   Internal: 'INTERNAL_ERROR',
+  MlUnavailable: 'ML_SERVICE_UNAVAILABLE',
 } as const;
 
 const STAGE_LABEL: Record<string, string> = {
@@ -44,6 +45,8 @@ const STAGE_LABEL: Record<string, string> = {
 /** 409 for "the campaign is in the wrong stage for this action", in plain words. */
 export const wrongStage = (status: string, message?: string) =>
   new ConflictException({
-    message: message ?? `This campaign is ${STAGE_LABEL[status] ?? status}, so you can't do that right now.`,
+    message:
+      message ??
+      `This campaign is ${STAGE_LABEL[status] ?? status}, so you can't do that right now.`,
     code: ErrorCode.CampaignWrongStage,
   });

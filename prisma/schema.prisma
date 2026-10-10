@@ -187,8 +187,8 @@ model RefreshToken {
 }
 
 model CreatorProfile {
-  userId             String          @id
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String            @id
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName        String
   avatarUrl          String?
   bio                String?
@@ -198,11 +198,88 @@ model CreatorProfile {
   portfolio          String[]
   priceFromKobo      Int?
   priceToKobo        Int?
-  credibilityScore   Float           @default(0)
-  ratingAvg          Float           @default(0)
-  completedCampaigns Int             @default(0)
-  availability       Availability    @default(available)
+  credibilityScore   Float             @default(0)
+  ratingAvg          Float             @default(0)
+  completedCampaigns Int               @default(0)
+  availability       Availability      @default(available)
   socials            SocialAccount[]
+  mlProfile          CreatorMlProfile?
+}
+
+/// Versioned recommendation features kept separate from operational profile fields.
+/// Synthetic provenance is explicit; private generator truth is never stored here.
+model CreatorMlProfile {
+  id                     String         @id @default(uuid())
+  creatorId              String         @unique
+  creator                CreatorProfile @relation(fields: [creatorId], references: [userId], onDelete: Cascade)
+  namespace              String
+  sourceCreatorId        String
+  sourceRecordHash       String
+  schemaVersion          String
+  synthetic              Boolean        @default(false)
+  sourceKind             String
+  portfolioDescription   String?
+  contentTone            String?
+  contentLanguages       String[]
+  audienceInterests      String[]
+  creativeStyles         String[]
+  productionCapabilities String[]
+  typicalLeadTimeDays    Int?
+  imageAssetId           String?
+  sourceAvailability     String?
+  commercialExperience   Json?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  audienceMarkets         CreatorAudienceMarket[]
+  deliverableCapabilities CreatorDeliverableCapability[]
+  commercialRates         CreatorCommercialRate[]
+  evidenceEvents          DemoMlEvidenceEvent[]
+
+  @@unique([namespace, sourceCreatorId])
+  @@index([namespace, synthetic])
+}
+
+model CreatorAudienceMarket {
+  id                 String           @id @default(uuid())
+  creatorMlProfileId String
+  creatorMlProfile   CreatorMlProfile @relation(fields: [creatorMlProfileId], references: [id], onDelete: Cascade)
+  countryCode        String
+  sharePercent       Decimal          @db.Decimal(5, 2)
+
+  @@unique([creatorMlProfileId, countryCode])
+  @@index([countryCode])
+}
+
+model CreatorDeliverableCapability {
+  id                 String           @id @default(uuid())
+  creatorMlProfileId String
+  creatorMlProfile   CreatorMlProfile @relation(fields: [creatorMlProfileId], references: [id], onDelete: Cascade)
+  platform           Platform
+  format             String
+
+  @@unique([creatorMlProfileId, platform, format])
+  @@index([platform, format])
+}
+
+model CreatorCommercialRate {
+  id                                  String           @id @default(uuid())
+  creatorMlProfileId                  String
+  creatorMlProfile                    CreatorMlProfile @relation(fields: [creatorMlProfileId], references: [id], onDelete: Cascade)
+  platform                            Platform
+  format                              String
+  amount                              Decimal          @db.Decimal(18, 2)
+  currency                            String
+  normalizedUsd                       Decimal          @db.Decimal(18, 2)
+  rateVersion                         String
+  purpose                             String?
+  includes                            String[]
+  usageRightsMultipliers              Json
+  categoryExclusivity30DaysMultiplier Decimal          @db.Decimal(8, 4)
+
+  @@unique([creatorMlProfileId, platform, format, rateVersion])
+  @@index([platform, format])
+  @@index([currency, rateVersion])
 }
 
 model SocialAccount {
@@ -284,9 +361,109 @@ model Opportunity {
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   interests        Interest[]
+  mlProfile        OpportunityMlProfile?
 
   @@index([status, visibility])
   @@index([brandId])
+}
+
+/// Structured recommendation brief paired with an operational opportunity.
+model OpportunityMlProfile {
+  id                        String      @id @default(uuid())
+  opportunityId             String      @unique
+  opportunity               Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  namespace                 String
+  sourceOpportunityId       String
+  sourceRecordHash          String
+  sourceBrandId             String
+  schemaVersion             String
+  synthetic                 Boolean     @default(false)
+  industry                  String?
+  product                   String?
+  objective                 String?
+  tone                      String?
+  creativeConcept           String?
+  crossCategoryRationale    String?
+  callToAction              String?
+  budgetAmount              Decimal     @db.Decimal(18, 2)
+  budgetCurrency            String
+  budgetNormalizedUsd       Decimal     @db.Decimal(18, 2)
+  budgetRateVersion         String
+  budgetPurpose             String?
+  budgetScope               String?
+  compatibleNiches          String[]
+  preferredLanguages        String[]
+  preferredPlatforms        String[]
+  requiredLanguages         String[]
+  requiredPlatforms         String[]
+  keyMessages               String[]
+  successMetrics            String[]
+  targetAudienceDescription String?
+  targetAudienceInterests   String[]
+  targetAudienceMarkets     String[]
+  deliverables              Json
+  usageRights               Json
+  timeline                  Json?
+  brandSnapshot             Json?
+  heldOut                   Boolean     @default(false)
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+
+  evidenceEvents DemoMlEvidenceEvent[]
+
+  @@unique([namespace, sourceOpportunityId])
+  @@index([namespace, synthetic])
+  @@index([sourceBrandId])
+}
+
+/// Synthetic public evidence for demonstrations only. It is intentionally
+/// disconnected from Campaign, payments, disputes and operational audit logs.
+model DemoMlEvidenceEvent {
+  id                     String               @id @default(uuid())
+  namespace              String
+  schemaVersion          String
+  synthetic              Boolean              @default(true)
+  sourceEventId          String
+  sourceRecordHash       String
+  sourceJourneyId        String
+  sourceContractId       String?
+  previousSourceEventId  String?
+  sequence               Int
+  eventType              String
+  occurredAt             DateTime
+  details                Json
+  creatorMlProfileId     String
+  creatorMlProfile       CreatorMlProfile     @relation(fields: [creatorMlProfileId], references: [id], onDelete: Cascade)
+  opportunityMlProfileId String
+  opportunityMlProfile   OpportunityMlProfile @relation(fields: [opportunityMlProfileId], references: [id], onDelete: Cascade)
+  createdAt              DateTime             @default(now())
+
+  @@unique([namespace, sourceEventId])
+  @@unique([namespace, sourceJourneyId, sequence])
+  @@index([creatorMlProfileId, occurredAt])
+  @@index([opportunityMlProfileId, occurredAt])
+  @@index([sourceJourneyId])
+}
+
+/// Records completed write-mode imports. Dry runs never write this table.
+model DemoDatasetImport {
+  id                  String    @id @default(uuid())
+  namespace           String
+  schemaVersion       String
+  generatorVersion    String
+  manifestSha256      String
+  datasetFingerprint  String
+  databaseFingerprint String
+  importerVersion     String
+  status              String
+  counts              Json
+  conflicts           Json
+  startedAt           DateTime
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@unique([namespace, manifestSha256, databaseFingerprint])
+  @@index([namespace, status])
 }
 
 /// An invitation (brand → creator) or application (creator → brand), optionally for one brief.

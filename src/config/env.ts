@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 const schema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
   PORT: z.coerce.number().default(3000),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().default(20),
   DATABASE_URL: z.string().url(),
@@ -29,6 +31,19 @@ const schema = z.object({
   R2_BUCKET: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
+  ML_SERVICE_URL: z.string().url().default('http://127.0.0.1:8001'),
+  ML_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(120_000)
+    .default(20_000),
+  ML_SEMANTIC_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(180_000)
+    .default(60_000),
 });
 
 export type Env = z.infer<typeof schema>;

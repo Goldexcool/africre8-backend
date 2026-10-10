@@ -1,0 +1,1415 @@
+[
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Lagos",
+      "country_code": "NG"
+    },
+    "id": "syn_brand_001",
+    "industry": "Consumer Technology",
+    "name": "Aster Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "NG",
+      "KE",
+      "ZA",
+      "ZM",
+      "BW",
+      "US",
+      "BR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "wireless earbuds",
+      "mobile photo editor",
+      "creator laptop",
+      "smartphone camera"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Accra",
+      "country_code": "GH"
+    },
+    "id": "syn_brand_002",
+    "industry": "Financial Technology",
+    "name": "Kora Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "GH",
+      "CD",
+      "ZM",
+      "SN",
+      "DE",
+      "GB"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "cross-border wallet",
+      "freelancer account",
+      "merchant payment app",
+      "budgeting tool"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Nairobi",
+      "country_code": "KE"
+    },
+    "id": "syn_brand_003",
+    "industry": "Beauty and Personal Care",
+    "name": "Mosaic Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "KE",
+      "EG",
+      "UG",
+      "CD",
+      "MA",
+      "CA",
+      "BR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "melanin-friendly sunscreen",
+      "curl care range",
+      "fragrance collection",
+      "gentle cleanser"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Johannesburg",
+      "country_code": "ZA"
+    },
+    "id": "syn_brand_004",
+    "industry": "Apparel and Accessories",
+    "name": "Northstar Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "ZA",
+      "BW",
+      "MZ",
+      "EG",
+      "CI",
+      "AE",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "travel capsule collection",
+      "performance trainers",
+      "workwear edit",
+      "artisan accessory line"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dakar",
+      "country_code": "SN"
+    },
+    "id": "syn_brand_005",
+    "industry": "Food and Beverage",
+    "name": "Safi Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "SN",
+      "NG",
+      "ET",
+      "ZA",
+      "RW",
+      "CA",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "sparkling fruit drink",
+      "meal-kit service",
+      "specialty coffee",
+      "kitchen appliance"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Kigali",
+      "country_code": "RW"
+    },
+    "id": "syn_brand_006",
+    "industry": "Travel and Hospitality",
+    "name": "Tideway Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "RW",
+      "TZ",
+      "MZ",
+      "GH",
+      "IN",
+      "BR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "regional flight pass",
+      "boutique hotel network",
+      "travel booking app",
+      "city experience pass"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Cairo",
+      "country_code": "EG"
+    },
+    "id": "syn_brand_007",
+    "industry": "Education Technology",
+    "name": "Baobab Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "EG",
+      "CM",
+      "ZA",
+      "GH",
+      "TZ",
+      "FR",
+      "CA"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "career learning platform",
+      "language-learning app",
+      "coding bootcamp",
+      "children's learning kit"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Casablanca",
+      "country_code": "MA"
+    },
+    "id": "syn_brand_008",
+    "industry": "Sport and Wellness",
+    "name": "Lumen Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "MA",
+      "CI",
+      "EG",
+      "CD",
+      "ZM",
+      "DE",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "running shoe",
+      "recovery app",
+      "home training kit",
+      "community race series"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Abidjan",
+      "country_code": "CI"
+    },
+    "id": "syn_brand_009",
+    "industry": "Entertainment and Gaming",
+    "name": "Nia Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "NG",
+      "BW",
+      "MA",
+      "TZ",
+      "IN",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "mobile game",
+      "streaming subscription",
+      "gaming headset",
+      "community tournament"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Kampala",
+      "country_code": "UG"
+    },
+    "id": "syn_brand_010",
+    "industry": "Creative Software",
+    "name": "Cedar Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "UG",
+      "NG",
+      "ET",
+      "CM",
+      "TZ",
+      "BR",
+      "GB"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "illustration suite",
+      "video editing tool",
+      "portfolio builder",
+      "animation app"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Lagos",
+      "country_code": "NG"
+    },
+    "id": "syn_brand_011",
+    "industry": "Consumer Technology",
+    "name": "Orbit Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "NG",
+      "MA",
+      "UG",
+      "BW",
+      "EG",
+      "AE",
+      "BR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "wireless earbuds",
+      "mobile photo editor",
+      "creator laptop",
+      "smartphone camera"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Accra",
+      "country_code": "GH"
+    },
+    "id": "syn_brand_012",
+    "industry": "Financial Technology",
+    "name": "Juniper Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "GH",
+      "CD",
+      "ZA",
+      "ZW",
+      "ZM",
+      "CA",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "cross-border wallet",
+      "freelancer account",
+      "merchant payment app",
+      "budgeting tool"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Nairobi",
+      "country_code": "KE"
+    },
+    "id": "syn_brand_013",
+    "industry": "Beauty and Personal Care",
+    "name": "Vela Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "KE",
+      "ZA",
+      "BW",
+      "EG",
+      "BR",
+      "DE"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "melanin-friendly sunscreen",
+      "curl care range",
+      "fragrance collection",
+      "gentle cleanser"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Johannesburg",
+      "country_code": "ZA"
+    },
+    "id": "syn_brand_014",
+    "industry": "Apparel and Accessories",
+    "name": "Canopy Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "ZA",
+      "CM",
+      "NG",
+      "ZM",
+      "MZ",
+      "FR",
+      "US"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "travel capsule collection",
+      "performance trainers",
+      "workwear edit",
+      "artisan accessory line"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dakar",
+      "country_code": "SN"
+    },
+    "id": "syn_brand_015",
+    "industry": "Food and Beverage",
+    "name": "Solace Collective 1",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "SN",
+      "KE",
+      "CI",
+      "UG",
+      "TZ",
+      "FR",
+      "BR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "sparkling fruit drink",
+      "meal-kit service",
+      "specialty coffee",
+      "kitchen appliance"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Kigali",
+      "country_code": "RW"
+    },
+    "id": "syn_brand_016",
+    "industry": "Travel and Hospitality",
+    "name": "Aster Collective 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "RW",
+      "ET",
+      "CI",
+      "TZ",
+      "MA",
+      "IN",
+      "FR"
+    ],
+    "positioning": "an Africa-founded company building for regional and diaspora customers",
+    "products": [
+      "regional flight pass",
+      "boutique hotel network",
+      "travel booking app",
+      "city experience pass"
+    ],
+    "synthetic": true,
+    "type": "african_business"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "London",
+      "country_code": "GB"
+    },
+    "id": "syn_brand_017",
+    "industry": "Education Technology",
+    "name": "Kora Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "SN",
+      "NG",
+      "ZM",
+      "GB",
+      "FR"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "career learning platform",
+      "language-learning app",
+      "coding bootcamp",
+      "children's learning kit"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "New York",
+      "country_code": "US"
+    },
+    "id": "syn_brand_018",
+    "industry": "Sport and Wellness",
+    "name": "Mosaic Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "MA",
+      "UG",
+      "CD",
+      "RW",
+      "DE",
+      "FR"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "running shoe",
+      "recovery app",
+      "home training kit",
+      "community race series"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Paris",
+      "country_code": "FR"
+    },
+    "id": "syn_brand_019",
+    "industry": "Entertainment and Gaming",
+    "name": "Northstar Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "RW",
+      "ET",
+      "EG",
+      "NG",
+      "DE",
+      "US"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "mobile game",
+      "streaming subscription",
+      "gaming headset",
+      "community tournament"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Berlin",
+      "country_code": "DE"
+    },
+    "id": "syn_brand_020",
+    "industry": "Creative Software",
+    "name": "Safi Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "MA",
+      "UG",
+      "ZW",
+      "AE",
+      "FR"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "illustration suite",
+      "video editing tool",
+      "portfolio builder",
+      "animation app"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dubai",
+      "country_code": "AE"
+    },
+    "id": "syn_brand_021",
+    "industry": "Consumer Technology",
+    "name": "Tideway Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "MZ",
+      "UG",
+      "SN",
+      "NG",
+      "GB",
+      "US"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "wireless earbuds",
+      "mobile photo editor",
+      "creator laptop",
+      "smartphone camera"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Toronto",
+      "country_code": "CA"
+    },
+    "id": "syn_brand_022",
+    "industry": "Financial Technology",
+    "name": "Baobab Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "CD",
+      "GH",
+      "EG",
+      "GB",
+      "IN"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "cross-border wallet",
+      "freelancer account",
+      "merchant payment app",
+      "budgeting tool"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "São Paulo",
+      "country_code": "BR"
+    },
+    "id": "syn_brand_023",
+    "industry": "Beauty and Personal Care",
+    "name": "Lumen Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "ZM",
+      "CM",
+      "ZW",
+      "NG",
+      "AE",
+      "CA"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "melanin-friendly sunscreen",
+      "curl care range",
+      "fragrance collection",
+      "gentle cleanser"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Singapore",
+      "country_code": "SG"
+    },
+    "id": "syn_brand_024",
+    "industry": "Apparel and Accessories",
+    "name": "Nia Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "ZM",
+      "RW",
+      "MZ",
+      "ZA",
+      "CA",
+      "IN"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "travel capsule collection",
+      "performance trainers",
+      "workwear edit",
+      "artisan accessory line"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "London",
+      "country_code": "GB"
+    },
+    "id": "syn_brand_025",
+    "industry": "Food and Beverage",
+    "name": "Cedar Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "KE",
+      "RW",
+      "NG",
+      "GB",
+      "FR"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "sparkling fruit drink",
+      "meal-kit service",
+      "specialty coffee",
+      "kitchen appliance"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "New York",
+      "country_code": "US"
+    },
+    "id": "syn_brand_026",
+    "industry": "Travel and Hospitality",
+    "name": "Orbit Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "KE",
+      "EG",
+      "CD",
+      "CA",
+      "US"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "regional flight pass",
+      "boutique hotel network",
+      "travel booking app",
+      "city experience pass"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Paris",
+      "country_code": "FR"
+    },
+    "id": "syn_brand_027",
+    "industry": "Education Technology",
+    "name": "Juniper Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "GH",
+      "KE",
+      "EG",
+      "FR",
+      "DE"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "career learning platform",
+      "language-learning app",
+      "coding bootcamp",
+      "children's learning kit"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Berlin",
+      "country_code": "DE"
+    },
+    "id": "syn_brand_028",
+    "industry": "Sport and Wellness",
+    "name": "Vela Labs 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "RW",
+      "CM",
+      "ZM",
+      "NG",
+      "FR",
+      "AE"
+    ],
+    "positioning": "an international growth company adapting products with local market partners",
+    "products": [
+      "running shoe",
+      "recovery app",
+      "home training kit",
+      "community race series"
+    ],
+    "synthetic": true,
+    "type": "international_company"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dubai",
+      "country_code": "AE"
+    },
+    "id": "syn_brand_029",
+    "industry": "Entertainment and Gaming",
+    "name": "Canopy Group 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "ZW",
+      "NG",
+      "BW",
+      "GH",
+      "DE",
+      "IN"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "mobile game",
+      "streaming subscription",
+      "gaming headset",
+      "community tournament"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Toronto",
+      "country_code": "CA"
+    },
+    "id": "syn_brand_030",
+    "industry": "Creative Software",
+    "name": "Solace Group 2",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "ZM",
+      "GH",
+      "RW",
+      "CA",
+      "AE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "illustration suite",
+      "video editing tool",
+      "portfolio builder",
+      "animation app"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "São Paulo",
+      "country_code": "BR"
+    },
+    "id": "syn_brand_031",
+    "industry": "Consumer Technology",
+    "name": "Aster Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "GH",
+      "CI",
+      "CD",
+      "BW",
+      "BR",
+      "AE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "wireless earbuds",
+      "mobile photo editor",
+      "creator laptop",
+      "smartphone camera"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Singapore",
+      "country_code": "SG"
+    },
+    "id": "syn_brand_032",
+    "industry": "Financial Technology",
+    "name": "Kora Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CD",
+      "CI",
+      "MA",
+      "ET",
+      "AE",
+      "CA"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "cross-border wallet",
+      "freelancer account",
+      "merchant payment app",
+      "budgeting tool"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "London",
+      "country_code": "GB"
+    },
+    "id": "syn_brand_033",
+    "industry": "Beauty and Personal Care",
+    "name": "Mosaic Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "EG",
+      "GH",
+      "CM",
+      "MZ",
+      "BR",
+      "CA"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "melanin-friendly sunscreen",
+      "curl care range",
+      "fragrance collection",
+      "gentle cleanser"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "New York",
+      "country_code": "US"
+    },
+    "id": "syn_brand_034",
+    "industry": "Apparel and Accessories",
+    "name": "Northstar Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CI",
+      "MA",
+      "NG",
+      "TZ",
+      "US",
+      "AE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "travel capsule collection",
+      "performance trainers",
+      "workwear edit",
+      "artisan accessory line"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Paris",
+      "country_code": "FR"
+    },
+    "id": "syn_brand_035",
+    "industry": "Food and Beverage",
+    "name": "Safi Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "UG",
+      "ZW",
+      "MA",
+      "TZ",
+      "CA",
+      "DE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "sparkling fruit drink",
+      "meal-kit service",
+      "specialty coffee",
+      "kitchen appliance"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Berlin",
+      "country_code": "DE"
+    },
+    "id": "syn_brand_036",
+    "industry": "Travel and Hospitality",
+    "name": "Tideway Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "MA",
+      "MZ",
+      "NG",
+      "ZW",
+      "US",
+      "IN"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "regional flight pass",
+      "boutique hotel network",
+      "travel booking app",
+      "city experience pass"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dubai",
+      "country_code": "AE"
+    },
+    "id": "syn_brand_037",
+    "industry": "Education Technology",
+    "name": "Baobab Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "CI",
+      "EG",
+      "KE",
+      "US",
+      "DE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "career learning platform",
+      "language-learning app",
+      "coding bootcamp",
+      "children's learning kit"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Toronto",
+      "country_code": "CA"
+    },
+    "id": "syn_brand_038",
+    "industry": "Sport and Wellness",
+    "name": "Lumen Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "SN",
+      "MZ",
+      "GH",
+      "EG",
+      "BR",
+      "DE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "running shoe",
+      "recovery app",
+      "home training kit",
+      "community race series"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "São Paulo",
+      "country_code": "BR"
+    },
+    "id": "syn_brand_039",
+    "industry": "Entertainment and Gaming",
+    "name": "Nia Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "KE",
+      "MA",
+      "RW",
+      "CM",
+      "IN",
+      "AE"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "mobile game",
+      "streaming subscription",
+      "gaming headset",
+      "community tournament"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Singapore",
+      "country_code": "SG"
+    },
+    "id": "syn_brand_040",
+    "industry": "Creative Software",
+    "name": "Cedar Group 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "CI",
+      "ZM",
+      "RW",
+      "AE",
+      "CA"
+    ],
+    "positioning": "a multinational consumer group running market-specific creator programs",
+    "products": [
+      "illustration suite",
+      "video editing tool",
+      "portfolio builder",
+      "animation app"
+    ],
+    "synthetic": true,
+    "type": "multinational"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "London",
+      "country_code": "GB"
+    },
+    "id": "syn_brand_041",
+    "industry": "Consumer Technology",
+    "name": "Orbit Creative 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "RW",
+      "ZA",
+      "TZ",
+      "ET",
+      "US",
+      "CA"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "wireless earbuds",
+      "mobile photo editor",
+      "creator laptop",
+      "smartphone camera"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "New York",
+      "country_code": "US"
+    },
+    "id": "syn_brand_042",
+    "industry": "Financial Technology",
+    "name": "Juniper Creative 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "KE",
+      "BW",
+      "RW",
+      "TZ",
+      "IN",
+      "AE"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "cross-border wallet",
+      "freelancer account",
+      "merchant payment app",
+      "budgeting tool"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Paris",
+      "country_code": "FR"
+    },
+    "id": "syn_brand_043",
+    "industry": "Beauty and Personal Care",
+    "name": "Vela Creative 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "SN",
+      "GH",
+      "CI",
+      "ZM",
+      "US",
+      "AE"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "melanin-friendly sunscreen",
+      "curl care range",
+      "fragrance collection",
+      "gentle cleanser"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Berlin",
+      "country_code": "DE"
+    },
+    "id": "syn_brand_044",
+    "industry": "Apparel and Accessories",
+    "name": "Canopy Creative 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "EG",
+      "ZA",
+      "BW",
+      "CI",
+      "GB",
+      "CA"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "travel capsule collection",
+      "performance trainers",
+      "workwear edit",
+      "artisan accessory line"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Dubai",
+      "country_code": "AE"
+    },
+    "id": "syn_brand_045",
+    "industry": "Food and Beverage",
+    "name": "Solace Creative 3",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "GH",
+      "EG",
+      "TZ",
+      "UG",
+      "DE",
+      "FR"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "sparkling fruit drink",
+      "meal-kit service",
+      "specialty coffee",
+      "kitchen appliance"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Toronto",
+      "country_code": "CA"
+    },
+    "id": "syn_brand_046",
+    "industry": "Travel and Hospitality",
+    "name": "Aster Creative 4",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "MZ",
+      "UG",
+      "MA",
+      "CM",
+      "FR",
+      "US"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "regional flight pass",
+      "boutique hotel network",
+      "travel booking app",
+      "city experience pass"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "São Paulo",
+      "country_code": "BR"
+    },
+    "id": "syn_brand_047",
+    "industry": "Education Technology",
+    "name": "Kora Creative 4",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "CM",
+      "NG",
+      "EG",
+      "MZ",
+      "DE",
+      "BR"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "career learning platform",
+      "language-learning app",
+      "coding bootcamp",
+      "children's learning kit"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "Singapore",
+      "country_code": "SG"
+    },
+    "id": "syn_brand_048",
+    "industry": "Sport and Wellness",
+    "name": "Mosaic Creative 4",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "NG",
+      "RW",
+      "MZ",
+      "MA",
+      "US",
+      "FR"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "running shoe",
+      "recovery app",
+      "home training kit",
+      "community race series"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "London",
+      "country_code": "GB"
+    },
+    "id": "syn_brand_049",
+    "industry": "Entertainment and Gaming",
+    "name": "Northstar Creative 4",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "SN",
+      "TZ",
+      "CI",
+      "NG",
+      "DE",
+      "CA"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "mobile game",
+      "streaming subscription",
+      "gaming headset",
+      "community tournament"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  },
+  {
+    "disclaimer": "Fictional demo brand; no real commercial partnership is implied.",
+    "headquarters": {
+      "city": "New York",
+      "country_code": "US"
+    },
+    "id": "syn_brand_050",
+    "industry": "Creative Software",
+    "name": "Safi Creative 4",
+    "namespace": "africre8-demo-v2",
+    "operating_markets": [
+      "TZ",
+      "NG",
+      "ZM",
+      "BW",
+      "IN",
+      "DE"
+    ],
+    "positioning": "an independent global agency managing creator work for disclosed fictional clients",
+    "products": [
+      "illustration suite",
+      "video editing tool",
+      "portfolio builder",
+      "animation app"
+    ],
+    "synthetic": true,
+    "type": "global_agency"
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "contracts": 360,
+  "counts": {
+    "brands": 50,
+    "creators": 500,
+    "evaluation": 45,
+    "generator_truth": 500,
+    "images": 500,
+    "interactions": 3000,
+    "opportunities": 150
+  },
+  "evaluation_labels": {
+    "highly_relevant": 83,
+    "not_relevant": 161,
+    "relevant": 87,
+    "weak": 209
+  },
+  "event_types": {
+    "cancellation": 62,
+    "completion": 273,
+    "contract": 360,
+    "dispute": 15,
+    "dispute_resolved": 15,
+    "invitation": 430,
+    "match": 410,
+    "negotiation": 393,
+    "rating": 243,
+    "revision_requested": 40,
+    "revision_submitted": 40,
+    "submission": 331,
+    "verification": 371,
+    "withdrawal": 17
+  },
+  "journeys": 430,
+  "valid": true,
+  "verification_outcomes": {
+    "fail": 15,
+    "insufficient_evidence": 28,
+    "partial": 54,
+    "pass": 274
+  }
+}

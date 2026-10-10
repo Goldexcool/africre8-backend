@@ -1,0 +1,112 @@
+{
+  "config": {
+    "creators": 500,
+    "interactions": 3000,
+    "opportunities": 150,
+    "reference_date": "2026-10-09",
+    "seed": 20261009
+  },
+  "currency_units_per_usd": {
+    "EGP": "50",
+    "ETB": "130",
+    "EUR": "0.90",
+    "GBP": "0.75",
+    "GHS": "15",
+    "KES": "130",
+    "NGN": "1500",
+    "RWF": "1400",
+    "UGX": "3700",
+    "USD": "1",
+    "XOF": "600",
+    "ZAR": "18"
+  },
+  "files_sha256": {
+    "creators.json": "d8cd5220ae625d3638c9f6ad7128a9e781d9c0b00576f16e4745f7e9ef1f58f6",
+    "images.json": "483f001499ee60e305360364257130db0a7d9e15bec3461f5f5226fa71d02a68",
+    "interactions.json": "4af5fcd557bc268efe58d79033f37c6f11e3df0b021dcbaefd527ce7786a0cdc",
+    "opportunities.json": "d32ed8a572beb30399cdb8202828f9dea6b5d5e8c4425c3f85dfa9904fd815f2"
+  },
+  "fixture_issues": [
+    {
+      "kind": "unverified_aggregates",
+      "resolution": "Legacy credibility/completion values retained only in source metadata; new summaries derive from events."
+    },
+    {
+      "kind": "external_photos",
+      "resolution": "Legacy photo URLs retained as provenance only; portrait assets remain ungenerated."
+    },
+    {
+      "kind": "language_unknown",
+      "resolution": "Enriched languages are synthetic assumptions, not inferred personal facts."
+    },
+    {
+      "creator_id": "syn_creator_0051",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0052",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0055",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0060",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0073",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0099",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0113",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0248",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0292",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0312",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    },
+    {
+      "creator_id": "syn_creator_0459",
+      "kind": "shared_display_name",
+      "resolution": "Distinct stable ID retained; no person merged."
+    }
+  ],
+  "generator_version": "1.0",
+  "limitations": [
+    "Synthetic demonstration, not real performance or real-world accuracy evidence.",
+    "No payment quotes, transactions or production identifiers.",
+    "Language and audience enrichment is fictional; appearance is excluded from ML inputs.",
+    "Completed means accepted simulated fulfillment, not payout settlement.",
+    "Interactions are event rows; histories can stop before completion."
+  ],
+  "namespace": "africre8-demo-v1",
+  "rate_version": "synthetic-usd-reference-v1",
+  "schema_version": "1.0",
+  "source_fixture_count": 50,
+  "source_fixture_sha256": "de521175887e638a4ede29bf110db8599d0a7d00ec4f2eba7a5bff3c8c9c5d53",
+  "synthetic": true
+}
