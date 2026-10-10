@@ -2,7 +2,9 @@ import { Global, Injectable, Logger, Module } from '@nestjs/common';
 
 export type Mail = { to: string; subject: string; heading: string; body: string; code?: string; cta?: { label: string; url: string } };
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+const TEST_DOMAIN = /@(?:[a-z0-9-]+\.)*africre8\.dev$/i;
+
+const esc =(s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 function render(m: Mail) {
   return `<!doctype html><html><body style="margin:0;background:#f6f1ea;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1410">
@@ -25,7 +27,8 @@ export class MailService {
 
   async send(m: Mail) {
     const key = process.env.BREVO_API_KEY;
-    if (!key) {
+    // Test accounts (e2e/probe @*.africre8.dev) have no inbox; sending them burned the daily Brevo quota.
+    if (!key || TEST_DOMAIN.test(m.to)) {
       this.outbox.push(m);
       if (this.outbox.length > 100) this.outbox.shift();
       return;
