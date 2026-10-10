@@ -38,7 +38,7 @@ describe('Payments (e2e, mock provider)', () => {
     const f1 = await http.post(`/campaigns/${campaignId}/fund`).set(brand.auth).send({ method: 'bank_transfer' }).expect(201);
     const f2 = await http.post(`/campaigns/${campaignId}/fund`).set(brand.auth).send({ method: 'bank_transfer' }).expect(201);
     expect(f2.body.id).toBe(f1.body.id); // same live attempt, not a second charge
-    expect(f1.body.totalNgn).toBe(210000); // ₦200k + 5% fee
+    expect(f1.body.totalNgn).toBe(216000); // ₦200k + 8% fee
     expect(f1.body.instructions.accountNumber).toBeTruthy();
 
     // A webhook claiming success is only a hint; Payaza (mock) still says pending → not funded.

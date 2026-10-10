@@ -18,6 +18,8 @@ import { ReviewModule } from './review/review.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { OpportunitiesModule } from './opportunities/opportunities.module.js';
 import { MetaModule } from './meta/meta.module.js';
+import { SettingsModule } from './settings/settings.module.js';
+import { KycModule } from './kyc/kyc.module.js';
 import { UploadsController } from './uploads/uploads.controller.js';
 import { ObjectStoreService } from './uploads/object-store.service.js';
 import { AllExceptionsFilter } from './common/all-exceptions.filter.js';
@@ -28,7 +30,7 @@ import { MlModule } from './ml/ml.module.js';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
-    MailModule,
+    SettingsModule, MailModule,
     QueueModule,
     AuthModule,
     ProfilesModule,
@@ -40,7 +42,7 @@ import { MlModule } from './ml/ml.module.js';
     VerificationModule,
     ReviewModule,
     AdminModule,
-    OpportunitiesModule,
+    KycModule, OpportunitiesModule,
     MetaModule,
     MlModule,
   ],

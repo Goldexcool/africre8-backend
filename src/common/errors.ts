@@ -17,9 +17,12 @@ export const ErrorCode = {
   Conflict: 'CONFLICT',
   CampaignWrongStage: 'CAMPAIGN_WRONG_STAGE',
   CampaignChanged: 'CAMPAIGN_CHANGED',
+  DisputeNotOpen: 'DISPUTE_NOT_OPEN',
+  AlreadyResponded: 'ALREADY_RESPONDED',
   PaymentPending: 'PAYMENT_PENDING',
   RateLimited: 'RATE_LIMITED',
   InvalidCode: 'INVALID_CODE',
+  TotpRequired: 'TOTP_REQUIRED',
   Internal: 'INTERNAL_ERROR',
   MlUnavailable: 'ML_SERVICE_UNAVAILABLE',
 } as const;

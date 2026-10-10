@@ -51,6 +51,7 @@ export class ProfilesController {
     const { accountName } = await this.payments.provider.resolveAccount(body.bankCode, body.accountNumber);
     const dest = await this.profiles.setPayoutDestination(u.id, { ...body, accountName });
     for (const id of await this.payments.refundsOwed(u.id)) await this.payments.refund(id, u.id, 'Refund account saved').catch(() => undefined);
+    await this.payments.retrySplitRefunds(u.id);
     return dest;
   }
 

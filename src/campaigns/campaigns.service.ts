@@ -4,18 +4,19 @@ import type { AuthUser } from '../common/auth.decorators.js';
 import type { CampaignStatus } from '../generated/prisma/client.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { SettingsService } from '../settings/settings.module.js';
 import type { CreateInput, TermsInput } from './campaigns.schemas.js';
 import { CampaignStateMachine } from './state-machine.js';
 
-const FEE_BPS = Number(process.env.PLATFORM_FEE_BPS ?? 500); // 5% platform fee, paid by the brand on top
 const EDITABLE: CampaignStatus[] = ['pending_agreement', 'awaiting_funding'];
 const normTag = (t: string, p: string) => (t.startsWith(p) ? t : p + t).toLowerCase();
 
-const termsData = (t: TermsInput) => ({
+/** The platform fee (basis points, an admin setting; 800 = 8%) is paid by the brand on top of the work amount. */
+const termsData = (t: TermsInput, feeBps: number) => ({
   title: t.title,
   brief: t.brief,
   amountKobo: t.amountNgn * 100,
-  feeKobo: Math.round((t.amountNgn * 100 * FEE_BPS) / 10_000),
+  feeKobo: Math.round((t.amountNgn * 100 * feeBps) / 10_000),
   deadline: t.deadline,
   revisionLimit: t.revisionLimit,
   usageRights: t.usageRights,
@@ -36,6 +37,7 @@ export class CampaignsService {
     private readonly prisma: PrismaService,
     private readonly sm: CampaignStateMachine,
     private readonly notifications: NotificationsService,
+    private readonly settings: SettingsService,
   ) {}
 
   async create(brandId: string, input: CreateInput) {
@@ -44,13 +46,14 @@ export class CampaignsService {
     const open = await this.prisma.campaign.findFirst({ where: { matchId: match.id, status: { not: 'completed' } } });
     if (open) throw new ConflictException('This match already has an open campaign');
 
+    const feeBps = await this.settings.number('platformFeeBps');
     const campaign = await this.prisma.$transaction(async (tx) => {
       const c = await tx.campaign.create({
         data: {
           matchId: match.id,
           brandId,
           creatorId: match.creatorId,
-          ...termsData(input),
+          ...termsData(input, feeBps),
           brandAcceptedAt: new Date(), // proposer accepts their own terms
           requirements: { create: requirementsData(input) },
         },
@@ -79,13 +82,14 @@ export class CampaignsService {
     const pendingFunding = await this.prisma.transaction.findFirst({ where: { campaignId: id, kind: 'FUNDING', status: { not: 'failed' } } });
     if (pendingFunding) throw new ConflictException('Funding already started for these terms');
 
+    const feeBps = await this.settings.number('platformFeeBps');
     await this.prisma.$transaction(async (tx) => {
       if (c.status === 'awaiting_funding') await this.sm.transition(id, 'pending_agreement', { actorId: u.id, tx });
       await tx.deliverableRequirement.deleteMany({ where: { campaignId: id } });
       await tx.campaign.update({
         where: { id },
         data: {
-          ...termsData(input),
+          ...termsData(input, feeBps),
           termsVersion: { increment: 1 },
           brandAcceptedAt: u.role === 'BRAND' ? new Date() : null,
           creatorAcceptedAt: u.role === 'CREATOR' ? new Date() : null,

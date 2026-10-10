@@ -15,6 +15,13 @@ const schema = z.object({
   PAYAZA_PUBLIC_KEY: z.string().optional(),
   PAYAZA_SECRET_KEY: z.string().optional(),
   PAYAZA_ENV: z.enum(['test', 'live']).default('test'),
+  /** Identity checks (NIN + selfie). `mock` needs no keys and never calls out. */
+  KYC_PROVIDER: z.enum(['dojah', 'mock']).default('mock'),
+  DOJAH_BASE_URL: z.string().url().default('https://sandbox.dojah.io'),
+  DOJAH_APP_ID: z.string().optional(),
+  DOJAH_SECRET_KEY: z.string().optional(),
+  DOJAH_PUBLIC_KEY: z.string().optional(),
+  KYC_MIN_CONFIDENCE: z.coerce.number().min(50).max(100).default(90),
   AZURE_OPENAI_ENDPOINT: z.string().url().optional(),
   AZURE_OPENAI_API_KEY: z.string().optional(),
   GROQ_API_KEY: z.string().optional(),

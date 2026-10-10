@@ -7,6 +7,7 @@ import { RedisIoAdapter } from './realtime/redis-io.adapter.js';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   app.set('trust proxy', 1); // Railway/nginx: rate limits must see the client IP, not the proxy's
+  app.useBodyParser('json', { limit: '4mb' }); // KYC selfies (base64)
   app.enableCors();
   app.useWebSocketAdapter(new RedisIoAdapter(app));
   app.enableShutdownHooks();

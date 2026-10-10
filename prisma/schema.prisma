@@ -99,6 +99,24 @@ enum DisputeStatus {
   RESOLVED_RELEASE
   RESOLVED_REFUND
   RESOLVED_REVISION
+  RESOLVED_SPLIT
+}
+
+enum AdminRole {
+  SUPER
+  SUPPORT
+  FINANCE
+}
+
+enum KycStatus {
+  VERIFIED
+  FAILED
+}
+
+enum ReportStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
 }
 
 enum MessageKind {
@@ -118,6 +136,13 @@ model User {
   /// Creators: brands can find and invite them in Discover. Off = only they can apply.
   openToInvites      Boolean            @default(true)
   emailVerifiedAt    DateTime?
+  /// Why an admin suspended the account (shown to the person when they try to sign in).
+  suspendedReason    String?
+  /// Admins only: what they may do. Null on an admin means SUPER (the seeded account).
+  adminRole          AdminRole?
+  /// Admins only: TOTP secret (base32) and when 2FA was switched on.
+  totpSecret         String?
+  totpEnabledAt      DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -333,6 +358,9 @@ model Opportunity {
   visibility       OpportunityVisibility @default(PUBLIC)
   applicationLimit Int?
   status           OpportunityStatus     @default(PUBLISHED)
+  /// Set when an admin took the brief down; the reason is kept for the audit.
+  removedAt        DateTime?
+  removedReason    String?
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   interests        Interest[]
@@ -563,6 +591,8 @@ model Campaign {
   creatorAcceptedAt DateTime?
   fundedAt          DateTime?
   completedAt       DateTime?
+  /// What the creator is paid when it is not the whole amount (a dispute split). Null means amountKobo.
+  payoutKobo        Int?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
@@ -605,17 +635,22 @@ model Submission {
 }
 
 model VerificationRun {
-  id           String     @id @default(uuid())
-  submissionId String
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  verdict      Verdict?
-  checks       Json?
-  summary      String?
-  evidence     Json?
-  model        String?
-  error        String?
-  startedAt    DateTime   @default(now())
-  finishedAt   DateTime?
+  id             String     @id @default(uuid())
+  submissionId   String
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  verdict        Verdict?
+  checks         Json?
+  summary        String?
+  evidence       Json?
+  model          String?
+  error          String?
+  startedAt      DateTime   @default(now())
+  finishedAt     DateTime?
+  /// A person's decision on a run that needed one: accept | reject | revision. Record only: the brand still decides.
+  reviewDecision String?
+  reviewNote     String?
+  reviewedById   String?
+  reviewedAt     DateTime?
 }
 
 model Transaction {
@@ -634,6 +669,10 @@ model Transaction {
   providerStatus   String?
   providerResponse Json?
   failureReason    String?
+  /// Marks money movements that do not drive the campaign state, e.g. DISPUTE_SPLIT (the brand's share of a split).
+  purpose          String?
+  reconciledAt     DateTime?
+  reconciledById   String?
   createdAt        DateTime          @default(now())
   resolvedAt       DateTime?
 
@@ -664,6 +703,104 @@ model Dispute {
   resolution String?
   createdAt  DateTime      @default(now())
   resolvedAt DateTime?
+
+  /// The other party has 72 hours (respondBy) to answer; after that the dispute is flagged for the admin.
+  respondBy        DateTime?
+  responseReason   String?
+  responseEvidence String[]  @default([])
+  respondedAt      DateTime?
+  respondedById    String?
+  assignedToId     String?
+  noResponse       Boolean   @default(false)
+  /// Set when a dispute ends in a split: what the creator is paid and what goes back to the brand (work amount only; the platform keeps its fee).
+  splitCreatorKobo Int?
+  splitBrandKobo   Int?
+
+  notes DisputeNote[]
+
+  @@index([status, createdAt])
+}
+
+/// Internal admin notes on a dispute. Never shown to brands or creators.
+model DisputeNote {
+  id        String   @id @default(uuid())
+  disputeId String
+  dispute   Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  adminId   String
+  note      String
+  createdAt DateTime @default(now())
+
+  @@index([disputeId, createdAt])
+}
+
+/// Internal admin notes on a user. Never shown to the user.
+model UserNote {
+  id        String   @id @default(uuid())
+  userId    String
+  adminId   String
+  note      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// One identity check run by the KYC provider (Dojah): the person's NIN and a selfie, matched by the provider. The NIN itself
+/// is never stored (only its last 4 digits and a keyed hash, so one ID cannot verify two accounts); the selfie is never stored.
+model KycVerification {
+  id            String    @id @default(uuid())
+  userId        String
+  provider      String
+  idType        String    @default("NIN")
+  idLast4       String
+  /// Keyed hash of the ID number. Unique among VERIFIED checks: one ID, one account.
+  idHash        String
+  status        KycStatus
+  /// The provider's selfie match confidence, 0 to 100.
+  confidence    Float?
+  failureReason String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([idHash, status])
+}
+
+/// A user's report about a profile, a brief or a message.
+model Report {
+  id          String       @id @default(uuid())
+  reporterId  String
+  targetType  String
+  targetId    String
+  reason      String
+  details     String?
+  status      ReportStatus @default(OPEN)
+  action      String?
+  handledNote String?
+  handledById String?
+  handledAt   DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+/// Editable platform settings. The value is JSON; every change is audited.
+model Setting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
+
+/// A message from AfiCre8 to everyone (or one role). Sending creates a notification for each person.
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  body        String
+  audience    String   @default("ALL")
+  linkTo      String?
+  createdById String
+  sentCount   Int      @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model Notification {
