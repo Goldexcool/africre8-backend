@@ -190,13 +190,13 @@ export class MlService {
   }
 
   /**
-   * How well one creator fits each brief, from the same model and hard rules brands see (0-1), or null when they do
-   * not pass the brief's rules or the brief cannot be scored (no platform named in its deliverables). Returns null when
+   * How well one creator fits each brief, from the same model and hard rules brands see (0-1), or the rule they miss
+   * (`outside`). Briefs that cannot be scored (no platform named in their deliverables) are absent. Returns null when
    * the creator cannot be scored at all (no ML profile yet), so callers fall back to an unscored list.
    * ponytail: one model call per brief, 8 at a time; add a batch endpoint to the ML service if the feed grows past ~100.
    */
   async scoreBriefsFor(creatorId: string, opportunityIds: string[], requestId?: string) {
-    const scores = new Map<string, { score: number; matched: string[] } | null>();
+    const scores = new Map<string, { score: number; matched: string[] } | { outside: string }>();
     await this.sync.syncCreator(creatorId);
     const creator = await this.prisma.creatorMlProfile.findUnique({ where: { creatorId }, include: creatorInclude });
     if (!creator) return null;
@@ -206,11 +206,12 @@ export class MlService {
     const worker = async () => {
       for (let o = queue.shift(); o; o = queue.shift()) {
         const r = await this.client.recommend(
-          { mode: 'structured', campaign: mapOpportunityToMl(o), candidates: [mapCreatorToMl(creator)], limit: 1, include_excluded: false },
+          { mode: 'structured', campaign: mapOpportunityToMl(o), candidates: [mapCreatorToMl(creator)], limit: 1, include_excluded: true },
           requestId,
         );
         const top = r.recommendations[0];
-        scores.set(o.id, top ? { score: top.score, matched: matchedParts(top.explanation.components) } : null);
+        const miss = r.exclusions[0];
+        scores.set(o.id, top ? { score: top.score, matched: matchedParts(top.explanation.components) } : { outside: outsideLabel(miss?.exclusion_reasons ?? [], 'creator') });
       }
     };
     await Promise.all(Array.from({ length: 8 }, worker));
@@ -258,6 +259,25 @@ export class MlService {
       platforms: row.creator.socials.map((social) => social.platform),
     };
   }
+}
+
+const PLATFORM: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube', x: 'X', facebook: 'Facebook' };
+const plat = (p: string) => PLATFORM[p] ?? p;
+
+/**
+ * The recommender's hard-rule reasons (eligibility.py) in plain words, from the reader's side: why this creator is
+ * outside this brief. Only the first reason is shown; budget comes last because it is the most negotiable.
+ */
+export function outsideLabel(reasons: string[], side: 'brand' | 'creator') {
+  const brand = side === 'brand';
+  for (const r of reasons) {
+    const [kind, a, b] = r.split(':');
+    if (kind === 'missing_required_platform' || kind === 'missing_required_format') return brand ? `No ${plat(a)} ${b ? `${b} ` : ''}on their profile` : `Needs ${plat(a)} on your profile`;
+    if (kind === 'missing_commercial_rate') return brand ? `No ${plat(a)} rate set yet` : `Add your ${plat(a)} rate to your profile`;
+    if (kind === 'missing_required_content_language') return brand ? `Doesn't post in ${a}` : `Needs content in ${a}`;
+  }
+  if (reasons.includes('over_budget')) return brand ? 'Rate above this brief’s budget' : 'Your rate is above its budget';
+  return brand ? 'Outside this brief' : 'Outside your profile';
 }
 
 /** Which parts of a brief a creator matches (niche, category, ...), strongest first. */

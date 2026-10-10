@@ -5,14 +5,14 @@ import { OnboardedGuard } from '../common/onboarded.guard.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { MlModule } from '../ml/ml.module.js';
-import { MlService, matchedParts } from '../ml/ml.service.js';
+import { MlService, matchedParts, outsideLabel } from '../ml/ml.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { toCreatorCard } from '../profiles/creator.mapper.js';
 
 export const INTEREST_TTL_DAYS = 7;
 /** A card is only offered when the recommender rates the fit at least this high (0-1), so every queue ends. */
-export const MIN_MATCH = 0.3;
+export const MIN_MATCH = 0.15;
 
 const num = z.coerce.number().optional();
 const filtersSchema = z.object({
@@ -55,52 +55,50 @@ export class DiscoveryService {
   ) {}
 
   /**
-   * Creators for the deck. With a brief, only creators the recommender rates at least MIN_MATCH, best first, each with
-   * their match and model credibility; the deck ends when they have all been swiped. When the recommender cannot rank
-   * (no platform in the brief, ML service down) the usual order is used and `ranking` says why.
+   * Creators for the deck. With a brief, every card says how it fits: creators the recommender rates at least MIN_MATCH
+   * come first, best first; then weaker fits with their score; then everyone else who fits the brand's filters, with
+   * the brief rule they miss (`outside`). The deck ends when they have all been swiped. When the recommender cannot
+   * rank (no platform in the brief, ML service down) the usual order is used and `ranking` says why.
    */
   async discover(brandId: string, f: Filters) {
     if (!f.opportunityId) return { ...(await this.plain(brandId, f)), ranking: { source: 'default' as const } };
-    let recommended: Awaited<ReturnType<MlService['recommend']>>['organic'] = [];
-    let note: string | undefined;
-    let model: { mode: string; version: string } | undefined;
+    let r: Awaited<ReturnType<MlService['recommend']>>;
     try {
       const swiped = await this.swipedIds(brandId, f.opportunityId);
-      const r = await this.ml.recommend(brandId, f.opportunityId, { mode: 'structured', limit: 100, includeExcluded: false, includeCredibility: true }, undefined, swiped);
-      recommended = r.organic.filter((x) => x.score >= MIN_MATCH);
-      model = r.model;
+      r = await this.ml.recommend(brandId, f.opportunityId, { mode: 'structured', limit: 100, includeExcluded: true, includeCredibility: true }, undefined, swiped);
     } catch (e) {
       if (e instanceof NotFoundException) throw e; // not this brand's brief
-      note = e instanceof HttpException && e.getStatus() < 500 ? e.message : 'Recommendations are unavailable right now, so creators are shown in the usual order.';
+      const note = e instanceof HttpException && e.getStatus() < 500 ? e.message : 'Recommendations are unavailable right now, so creators are shown in the usual order.';
       if (!(e instanceof HttpException) || e.getStatus() >= 500) this.log.warn(`recommendations for ${f.opportunityId}: ${(e as Error).message}`);
       return { ...(await this.plain(brandId, f)), ranking: { source: 'default' as const, note } };
     }
     // Credibility is the model's (real campaign evidence); creators without any yet ("New") only pass a 0 minimum.
-    if (f.minCredibility) recommended = recommended.filter((r) => (r.credibility?.credibility_score ?? -1) >= f.minCredibility!);
+    const credible = (c: { credibility_score: number | null } | null) => !f.minCredibility || (c?.credibility_score ?? -1) >= f.minCredibility;
+    const scored = new Map(r.organic.filter((x) => credible(x.credibility)).map((x) => [x.creator_id, x]));
+    const outside = new Map(f.minCredibility ? [] : r.exclusions.map((x) => [x.creator_id, outsideLabel(x.exclusion_reasons, 'brand')]));
     const { minCredibility: _, ...rest } = f;
-    const base = await this.plain(brandId, { ...rest, limit: 50 }, recommended.map((r) => r.creator_id), true);
-    const byId = new Map(recommended.map((r) => [r.creator_id, r]));
-    const ranked = base.items
-      .filter((card) => byId.has(card.id))
+    const base = await this.plain(brandId, { ...rest, limit: 50 }, [...scored.keys()], !!f.minCredibility);
+    const order = (c: { match: { score: number; rank: number } | null }) => (c.match ? (c.match.score >= MIN_MATCH ? c.match.rank : 1000 + c.match.rank) : 10_000);
+    const items = base.items
       .map((card) => {
-        const r = byId.get(card.id)!;
-        return {
-          ...card,
-          match: {
-            rank: r.rank,
-            score: r.score,
-            summary: r.explanation.summary,
-            matched: matchedParts(r.explanation.components),
-            credibility: r.credibility ? { status: r.credibility.status, score: r.credibility.credibility_score, tier: r.credibility.evidence_tier } : null,
-          },
-        };
+        const x = scored.get(card.id);
+        const match = x
+          ? {
+              rank: x.rank,
+              score: x.score,
+              summary: x.explanation.summary,
+              matched: matchedParts(x.explanation.components),
+              credibility: x.credibility ? { status: x.credibility.status, score: x.credibility.credibility_score, tier: x.credibility.evidence_tier } : null,
+            }
+          : null;
+        return { ...card, match, outside: match ? undefined : (outside.get(card.id) ?? 'Not scored for this brief yet') };
       })
-      .sort((a, b) => a.match.rank - b.match.rank)
+      .sort((a, b) => order(a) - order(b))
       .slice(0, f.limit);
     return {
-      items: ranked,
-      message: ranked.length ? undefined : "You've seen every creator who matches this brief. New matches appear as creators join or update their profiles.",
-      ranking: { source: 'recommender' as const, model, minMatch: MIN_MATCH },
+      items,
+      message: items.length ? undefined : "You've seen every creator for this brief. New creators appear as they join or update their profiles.",
+      ranking: { source: 'recommender' as const, model: r.model, minMatch: MIN_MATCH },
     };
   }
 

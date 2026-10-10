@@ -54,8 +54,11 @@ describe.skipIf(!mlUp)('Recommender by default (e2e, live ML service)', () => {
     // recommended creators come first, in rank order
     const ranks = d.body.items.filter((c: { match: unknown }) => c.match).map((c: { match: { rank: number } }) => c.match.rank);
     expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
-    // only creators the recommender rates at least 30% are offered, so the deck ends
-    expect(d.body.items.every((c: { match: { score: number } | null }) => c.match && c.match.score >= 0.3)).toBe(true);
+    // every card says how it fits: strong matches (>= 15%) first, then weaker ones, then creators outside the brief with a reason
+    const tier = (c: { match: { score: number } | null }) => (c.match ? (c.match.score >= 0.15 ? 0 : 1) : 2);
+    const tiers = d.body.items.map(tier);
+    expect(tiers).toEqual([...tiers].sort((a: number, b: number) => a - b));
+    expect(d.body.items.every((c: { match: unknown; outside?: string }) => c.match || c.outside)).toBe(true);
 
     // the creator sees the brief with the same match, from the same model
     const feed = await http.get('/opportunities/feed').set(creator.auth).expect(200);

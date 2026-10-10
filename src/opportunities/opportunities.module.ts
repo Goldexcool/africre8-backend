@@ -70,9 +70,10 @@ export class OpportunitiesService {
   }
 
   /**
-   * Creator feed: published briefs that fit this creator at least MIN_MATCH (scored by the same recommender brands use),
-   * best fit first, plus private briefs they were invited to. Briefs they applied to or passed on are left out, so the
-   * queue ends. If the recommender is down the briefs come unscored, newest first, and `match` is null.
+   * Creator feed: published public briefs plus private ones they were invited to, each scored for this creator by the
+   * same recommender brands use. Invites first, then fits of at least MIN_MATCH best first, then weaker fits, then
+   * briefs outside their profile with the rule they miss (`outside`). Briefs they applied to or passed on are left
+   * out, so the queue ends. If the recommender is down the briefs come unscored, newest first.
    */
   async feed(creatorId: string) {
     const mine = await this.prisma.interest.findMany({ where: { creatorId }, select: { opportunityId: true, senderId: true } });
@@ -87,17 +88,23 @@ export class OpportunitiesService {
     });
     const full = await this.fullIds(rows);
     const open = rows.filter((o) => !applied.has(o.id) && !passed.has(o.id) && (!full.has(o.id) || invitedTo.includes(o.id)));
-    let scores: Map<string, { score: number; matched: string[] } | null> | null = null;
+    let scores: Awaited<ReturnType<MlService['scoreBriefsFor']>> = null;
     try {
       scores = await this.ml.scoreBriefsFor(creatorId, open.map((o) => o.id));
     } catch (e) {
       this.log.warn(`feed scores for ${creatorId}: ${(e as Error).message}`);
     }
     const brands = await this.prisma.brandProfile.findMany({ where: { userId: { in: open.map((r) => r.brandId) } } });
+    const order = (o: { invited: boolean; match: { score: number } | null }) =>
+      o.invited ? 0 : !o.match ? 3 : o.match.score >= MIN_MATCH ? 1 - o.match.score : 2 - o.match.score;
     return open
-      .map((o) => ({ ...this.view(o), brand: brands.find((b) => b.userId === o.brandId) ?? null, invited: invitedTo.includes(o.id), match: scores?.get(o.id) ?? null }))
-      .filter((o) => !scores || o.invited || (o.match?.score ?? 0) >= MIN_MATCH)
-      .sort((a, b) => Number(b.invited) - Number(a.invited) || (b.match?.score ?? 0) - (a.match?.score ?? 0));
+      .map((o) => {
+        const s = scores?.get(o.id);
+        const match = s && 'score' in s ? s : null;
+        const outside = s && 'outside' in s ? s.outside : undefined;
+        return { ...this.view(o), brand: brands.find((b) => b.userId === o.brandId) ?? null, invited: invitedTo.includes(o.id), match, outside };
+      })
+      .sort((a, b) => order(a) - order(b));
   }
 
   /** The creator is not interested in this brief: it leaves their feed. */
