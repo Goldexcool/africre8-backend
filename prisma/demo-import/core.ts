@@ -207,14 +207,22 @@ export function assertApprovedDemoTarget(input: {
   confirmedFingerprint?: string;
   importEnabled?: string;
   nodeEnvironment?: string;
+  railwayReplacementApproved?: string;
+  replacementConfirmation?: string;
   write: boolean;
 }) {
   assert(input.databaseUrl, 'DATABASE_URL is required');
   const identity = databaseIdentity(input.databaseUrl);
   assert(input.databaseEnvironment === 'demo', 'DEMO_DATABASE_ENV must equal demo');
-  assert(input.nodeEnvironment !== 'production', 'imports are disabled when NODE_ENV=production');
-  assert(!/(prod|production|staging|railway)/i.test(`${identity.host}/${identity.database}`), 'production, staging and Railway targets are forbidden');
-  assert(/(demo|test|local)/i.test(identity.database), 'database name must visibly identify a demo, test or local database');
+  const railwayTarget = /railway/i.test(identity.host) || input.railwayReplacementApproved === 'true';
+  if (railwayTarget) {
+    assert(input.railwayReplacementApproved === 'true', 'DEMO_RAILWAY_REPLACEMENT_APPROVED=true is required for a Railway target');
+    assert(input.replacementConfirmation === 'REPLACE_WITH_SYNTHETIC_DEMO', 'Railway replacement confirmation is missing or incorrect');
+  } else {
+    assert(input.nodeEnvironment !== 'production', 'local imports are disabled when NODE_ENV=production');
+    assert(!/(prod|production|staging)/i.test(`${identity.host}/${identity.database}`), 'production and staging targets are forbidden');
+    assert(/(demo|test|local)/i.test(identity.database), 'database name must visibly identify a demo, test or local database');
+  }
   assert(input.expectedFingerprint === identity.fingerprint, 'DEMO_DATABASE_FINGERPRINT does not match DATABASE_URL');
   assert(input.confirmedFingerprint === identity.fingerprint, 'CLI fingerprint confirmation is missing or incorrect');
   if (input.write) assert(input.importEnabled === 'true', 'DEMO_DATA_IMPORT_ENABLED=true is required for writes');

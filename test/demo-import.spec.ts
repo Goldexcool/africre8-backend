@@ -96,6 +96,18 @@ describe('demo database restrictions', () => {
     expect(() => assertApprovedDemoTarget({ databaseUrl: url, databaseEnvironment: 'demo', expectedFingerprint: fingerprint, confirmedFingerprint: fingerprint, importEnabled: 'false', nodeEnvironment: 'test', write: true })).toThrow(/DEMO_DATA_IMPORT_ENABLED=true/);
   });
 
+  it('allows only an explicitly confirmed Railway replacement target', () => {
+    const railwayUrl = 'postgresql://x:x@postgres.railway.internal:5432/railway';
+    const railwayFingerprint = databaseIdentity(railwayUrl).fingerprint;
+    expect(assertApprovedDemoTarget({ databaseUrl: railwayUrl, databaseEnvironment: 'demo', expectedFingerprint: railwayFingerprint, confirmedFingerprint: railwayFingerprint, importEnabled: 'true', nodeEnvironment: 'production', write: true, railwayReplacementApproved: 'true', replacementConfirmation: 'REPLACE_WITH_SYNTHETIC_DEMO' }).fingerprint).toBe(railwayFingerprint);
+  });
+
+  it('rejects an incorrect Railway replacement confirmation', () => {
+    const railwayUrl = 'postgresql://x:x@postgres.railway.internal:5432/railway';
+    const railwayFingerprint = databaseIdentity(railwayUrl).fingerprint;
+    expect(() => assertApprovedDemoTarget({ databaseUrl: railwayUrl, databaseEnvironment: 'demo', expectedFingerprint: railwayFingerprint, confirmedFingerprint: railwayFingerprint, importEnabled: 'true', nodeEnvironment: 'production', write: true, railwayReplacementApproved: 'true', replacementConfirmation: 'wrong' })).toThrow(/replacement confirmation/);
+  });
+
   it.each([
     ['production environment', { databaseUrl: url, databaseEnvironment: 'demo', expectedFingerprint: fingerprint, confirmedFingerprint: fingerprint, importEnabled: 'true', nodeEnvironment: 'production', write: true }],
     ['staging name', { databaseUrl: 'postgresql://x:x@localhost:5432/africre8_staging', databaseEnvironment: 'demo', expectedFingerprint: databaseIdentity('postgresql://x:x@localhost:5432/africre8_staging').fingerprint, confirmedFingerprint: databaseIdentity('postgresql://x:x@localhost:5432/africre8_staging').fingerprint, importEnabled: 'true', nodeEnvironment: 'test', write: true }],

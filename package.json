@@ -25,6 +25,8 @@
     "db:seed": "prisma db seed",
     "demo:validate": "node --import tsx prisma/import-demo-v2.ts --offline-validate",
     "demo:import": "node --import tsx prisma/import-demo-v2.ts",
+    "demo:seed-operational": "node --import tsx prisma/seed-demo-operational.ts",
+    "demo:verify": "node --import tsx prisma/verify-demo-database.ts",
     "start:worker": "node dist/worker.js",
     "dev:worker": "nest start --watch --entryFile worker"
   },

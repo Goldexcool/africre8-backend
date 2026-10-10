@@ -1,6 +1,8 @@
 # Demo-v2 database import
 
-The importer is exclusively for a disposable database whose name visibly contains `demo`, `test`, or `local`. It rejects `NODE_ENV=production`, production/staging names, Railway hosts, mismatched fingerprints, and write mode without a second opt-in. It never reads `generator_truth.json` and never creates operational campaigns, submissions, verifications, disputes, transactions, audit events, or payout records.
+The importer defaults to disposable local databases whose name visibly contains `demo`, `test`, or `local`. A Railway replacement target is allowed only with the separate `DEMO_RAILWAY_REPLACEMENT_APPROVED=true` opt-in, the exact `REPLACE_WITH_SYNTHETIC_DEMO` confirmation phrase, a matching target fingerprint, and the normal write opt-in. It rejects production/staging names and mismatched fingerprints. It never reads `generator_truth.json` and never creates operational campaigns, submissions, verifications, disputes, transactions, audit events, or payout records.
+
+For the complete synthetic operational seed and Railway replacement procedure, use [railway-ml-and-demo-database.md](railway-ml-and-demo-database.md). Do not use the legacy `db:seed` command for that workflow.
 
 ## Validate files without a database
 
