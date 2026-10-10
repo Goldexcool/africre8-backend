@@ -23,6 +23,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "demo:validate": "node --import tsx prisma/import-demo-v2.ts --offline-validate",
+    "demo:import": "node --import tsx prisma/import-demo-v2.ts",
     "start:worker": "node dist/worker.js",
     "dev:worker": "nest start --watch --entryFile worker"
   },

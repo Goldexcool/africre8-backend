@@ -22,10 +22,33 @@ import { UploadsController } from './uploads/uploads.controller.js';
 import { ObjectStoreService } from './uploads/object-store.service.js';
 import { AllExceptionsFilter } from './common/all-exceptions.filter.js';
 import { HealthController } from './health/health.controller.js';
+import { MlModule } from './ml/ml.module.js';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), PrismaModule, MailModule, QueueModule, AuthModule, ProfilesModule, NotificationsModule, DiscoveryModule, MatchingModule, CampaignsModule, PaymentsModule, VerificationModule, ReviewModule, AdminModule, OpportunitiesModule, MetaModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
+    PrismaModule,
+    MailModule,
+    QueueModule,
+    AuthModule,
+    ProfilesModule,
+    NotificationsModule,
+    DiscoveryModule,
+    MatchingModule,
+    CampaignsModule,
+    PaymentsModule,
+    VerificationModule,
+    ReviewModule,
+    AdminModule,
+    OpportunitiesModule,
+    MetaModule,
+    MlModule,
+  ],
   controllers: [HealthController, UploadsController],
-  providers: [RealtimeGateway, ObjectStoreService, { provide: APP_FILTER, useClass: AllExceptionsFilter }],
+  providers: [
+    RealtimeGateway,
+    ObjectStoreService,
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}
