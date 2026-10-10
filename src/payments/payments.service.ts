@@ -424,7 +424,7 @@ export function payoutFailure(providerMessage: string) {
   if (/limit/.test(m))
     return {
       bank: false,
-      reason: "Payaza's transfer limit was reached. AfiCre8 is raising it and will retry; your money is held safely.",
+      reason: "Payaza's transfer limit was reached; AfiCre8 is raising it and will retry.",
       creator: (amount: string, title: string) => `Your ${amount} for “${title}” is safe. Our payment provider's transfer limit was reached, so the payout is delayed. We're fixing it and will pay you automatically; you don't need to do anything.`,
       brand: (amount: string, title: string) => `The ${amount} payout for “${title}” is delayed by our payment provider's transfer limit. Nothing more is charged to you; we'll retry automatically.`,
     };
@@ -437,7 +437,7 @@ export function payoutFailure(providerMessage: string) {
     };
   return {
     bank: false,
-    reason: "The bank transfer didn't go through. Your money is held safely and AfiCre8 will retry.",
+    reason: "The bank transfer didn't go through; AfiCre8 will retry.",
     creator: (amount: string, title: string) => `The transfer of your ${amount} for “${title}” didn't go through. Your money is safe and we'll retry; you don't need to do anything.`,
     brand: (amount: string, title: string) => `The ${amount} payout for “${title}” didn't go through on the first try. Nothing more is charged to you; we'll retry.`,
   };
