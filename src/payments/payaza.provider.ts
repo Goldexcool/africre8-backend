@@ -36,7 +36,8 @@ export class PayazaProvider implements PaymentProvider {
     }
     if (!res.ok && !(accept400 && res.status === 400)) {
       this.log.warn(`${method} ${path} -> ${res.status} ${text.slice(0, 300)}`);
-      throw new BadGatewayException(json?.message ?? `Payaza error ${res.status}`);
+      // Payaza puts the reason in `message` or `response_message` depending on the endpoint ("Transfer limit exceeded.")
+      throw new BadGatewayException(json?.message ?? json?.response_message ?? `Payaza error ${res.status}`);
     }
     return json as T;
   }

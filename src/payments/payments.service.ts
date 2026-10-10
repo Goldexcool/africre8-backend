@@ -151,6 +151,8 @@ export class PaymentsService {
       // Provider rejected the request outright: nothing left Payaza, so the payout is failed (retryable).
       this.log.error(`Payout ${reference} failed to start: ${(e as Error).message}`);
       await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
+      // keep Payaza's reason where the admin console shows it ("Transfer limit exceeded.")
+      await this.prisma.transaction.update({ where: { id: tx.id }, data: { failureReason: `Payaza: ${(e as Error).message}`.slice(0, 300) } });
     }
     return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
   }
