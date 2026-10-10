@@ -45,7 +45,7 @@ export class ProfilesService {
   }
 
   async creatorCard(userId: string) {
-    const p = await this.prisma.creatorProfile.findUnique({ where: { userId }, include: { socials: true } });
+    const p = await this.prisma.creatorProfile.findUnique({ where: { userId }, include: { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } } });
     if (!p) throw new NotFoundException('Creator not found');
     return toCreatorCard(p);
   }

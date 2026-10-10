@@ -47,7 +47,7 @@ export class MatchingService {
     const brands = await this.prisma.brandProfile.findMany({ where: { userId: { in: rows.map((r) => r.brandId) } } });
     const creators = await this.prisma.creatorProfile.findMany({
       where: { userId: { in: rows.map((r) => r.creatorId) } },
-      include: { socials: true },
+      include: { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } },
     });
     return rows.map((r) => {
       const c = creators.find((x) => x.userId === r.creatorId);
@@ -129,7 +129,7 @@ export class MatchingService {
       orderBy: { createdAt: 'desc' },
     });
     const brands = await this.prisma.brandProfile.findMany({ where: { userId: { in: rows.map((r) => r.brandId) } } });
-    const creators = await this.prisma.creatorProfile.findMany({ where: { userId: { in: rows.map((r) => r.creatorId) } }, include: { socials: true } });
+    const creators = await this.prisma.creatorProfile.findMany({ where: { userId: { in: rows.map((r) => r.creatorId) } }, include: { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } } });
     const opps = await this.prisma.opportunity.findMany({
       where: { id: { in: rows.map((r) => r.opportunityId).filter((x): x is string => !!x) } },
       select: { id: true, title: true, status: true },
