@@ -36,7 +36,7 @@ describe('Escrow refunds (e2e)', () => {
     await http.post(`/campaigns/${id}/fund`).set(brand.auth).send({ method: 'card' }).expect(409);
   });
 
-  it('cancelling a funded campaign refunds the full amount including the fee', async () => {
+  it('cancelling a funded campaign refunds the work amount; the platform keeps its fee', async () => {
     const { http } = ctx;
     const { brand, id } = await campaign(true);
     await http.put('/profiles/refund-account').set(brand.auth).send(bank()).expect(200);
@@ -44,7 +44,7 @@ describe('Escrow refunds (e2e)', () => {
     const c = await ctx.prisma.campaign.findUniqueOrThrow({ where: { id } });
     expect(c.status).toBe('refund_processing');
     const [t] = await refundTx(id);
-    expect(t.amountKobo).toBe(c.amountKobo + c.feeKobo);
+    expect(t.amountKobo).toBe(c.amountKobo); // not amount + fee: the fee is kept
     await settle(id);
     expect(await status(id)).toBe('refunded');
     await http.post(`/campaigns/${id}/cancel`).set(brand.auth).send({}).expect(409); // not twice
@@ -83,7 +83,7 @@ describe('Escrow refunds (e2e)', () => {
     const { email } = await ctx.prisma.user.update({ where: { id: adminUser.id }, data: { role: 'ADMIN' } });
     const login = await http.post('/auth/login').send({ email, password: 'password123' }).expect(200);
     const aauth = { Authorization: `Bearer ${login.body.accessToken}` };
-    const d = (await http.get('/admin/disputes').set(aauth).expect(200)).body.find((x: { campaignId: string }) => x.campaignId === id);
+    const d = (await http.get(`/admin/disputes?campaignId=${id}&status=ALL`).set(aauth).expect(200)).body.items[0];
     await http.post(`/admin/disputes/${d.id}/resolve`).set(aauth).send({ outcome: 'refund', resolution: 'Brand is refunded in full' }).expect(201);
     await settle(id);
     expect(await status(id)).toBe('refunded');

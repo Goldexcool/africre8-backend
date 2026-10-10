@@ -54,6 +54,11 @@ export async function cleanup(prisma: PrismaService) {
     prisma.swipe.deleteMany({ where: { OR: [{ brandId: { in: ids } }, { creatorId: { in: ids } }] } }),
     prisma.auditLog.deleteMany({ where: { actorId: { in: ids } } }),
     prisma.otpCode.deleteMany({ where: { userId: { in: ids } } }),
+    prisma.userNote.deleteMany({ where: { userId: { in: ids } } }),
+    prisma.kycVerification.deleteMany({ where: { userId: { in: ids } } }),
+    prisma.report.deleteMany({ where: { reporterId: { in: ids } } }),
+    prisma.announcement.deleteMany({ where: { createdById: { in: ids } } }),
+    prisma.setting.deleteMany({ where: { updatedById: { in: ids } } }),
     prisma.opportunity.deleteMany({ where: { brandId: { in: ids } } }),
     prisma.user.deleteMany({ where: { id: { in: ids } } }),
   ]);

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { User } from '../generated/prisma/client.js';
 import { ErrorCode } from '../common/errors.js';
+import { verifyTotp } from '../common/totp.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OtpService } from './otp.service.js';
 
@@ -32,12 +33,17 @@ export class AuthService {
     return this.issue(user);
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, totp?: string) {
     const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       throw new UnauthorizedException({ message: 'Incorrect email or password.', code: ErrorCode.InvalidCredentials });
     }
-    if (user.status === 'SUSPENDED') throw new ForbiddenException(SUSPENDED);
+    if (user.status === 'SUSPENDED') throw new ForbiddenException(user.suspendedReason ? { ...SUSPENDED, message: `This account has been suspended: ${user.suspendedReason}` } : SUSPENDED);
+    // Admins who turned on two-factor sign-in need the 6-digit code from their authenticator app as well.
+    if (user.role === 'ADMIN' && user.totpEnabledAt && user.totpSecret) {
+      if (!totp) throw new UnauthorizedException({ message: 'Enter the 6-digit code from your authenticator app.', code: ErrorCode.TotpRequired });
+      if (!verifyTotp(user.totpSecret, totp)) throw new UnauthorizedException({ message: 'That code is not right. Check the app and try again.', code: ErrorCode.TotpRequired });
+    }
     return this.issue(user);
   }
 
@@ -107,7 +113,7 @@ export class AuthService {
   me(userId: string) {
     return this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      omit: { passwordHash: true },
+      omit: { passwordHash: true, totpSecret: true },
       include: { creatorProfile: { include: { socials: true } }, brandProfile: true, payoutDestination: true },
     });
   }
@@ -123,7 +129,7 @@ export class AuthService {
       data: { userId: user.id, family, tokenHash: hash(refreshToken), expiresAt: new Date(Date.now() + days * 864e5) },
     });
     const accessToken = await this.jwt.signAsync({ sub: user.id, role: user.role });
-    const { passwordHash: _, ...safeUser } = user;
+    const { passwordHash: _, totpSecret: __, ...safeUser } = user;
     return { accessToken, refreshToken, refreshTokenId: row.id, user: safeUser };
   }
 }

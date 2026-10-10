@@ -5,6 +5,7 @@ import { Redis } from 'ioredis';
 export const QUEUES = {
   verification: 'verification',
   payments: 'payments',
+  disputes: 'disputes',
 } as const;
 
 // BullMQ under native ESM needs a constructed client rather than connection options.

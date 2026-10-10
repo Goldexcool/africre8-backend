@@ -11,7 +11,7 @@ const registerSchema = z.object({
   role: z.enum(['BRAND', 'CREATOR']),
   phone: z.string().min(7).optional(),
 });
-const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1) });
+const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1), totp: z.string().regex(/^\d{6}$/).optional() });
 const refreshSchema = z.object({ refreshToken: z.string().min(20) });
 
 const codeSchema = z.object({ code: z.string().regex(/^\d{4}$/) });
@@ -36,7 +36,7 @@ export class AuthController {
   @HttpCode(200)
   @Post('login')
   async login(@Body(new ZodPipe(loginSchema)) body: z.infer<typeof loginSchema>) {
-    return strip(await this.auth.login(body.email, body.password));
+    return strip(await this.auth.login(body.email, body.password, body.totp));
   }
 
   @Public()

@@ -6,6 +6,7 @@ import type { Transaction } from '../generated/prisma/client.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { SettingsService } from '../settings/settings.module.js';
 import { PAYMENT_PROVIDER, type BankTransferInstructions, type PaymentProvider } from './provider.js';
 
 const naira = (kobo: number) => kobo / 100;
@@ -20,6 +21,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly sm: CampaignStateMachine,
     private readonly notifications: NotificationsService,
+    private readonly settings: SettingsService,
     @Inject(PAYMENT_PROVIDER) readonly provider: PaymentProvider,
   ) {}
 
@@ -100,6 +102,7 @@ export class PaymentsService {
     if (!['approved', 'payout_failed'].includes(c.status)) throw wrongStage(c.status);
     const dest = await this.prisma.payoutDestination.findUnique({ where: { userId: c.creatorId } });
     if (!dest) throw new ConflictException('Creator has no payout destination yet');
+    const owed = c.payoutKobo ?? c.amountKobo; // a dispute split pays the creator only their share
 
     const reference = ref('P');
     const attempts = await this.prisma.transaction.count({ where: { campaignId, kind: 'PAYOUT' } });
@@ -110,7 +113,7 @@ export class PaymentsService {
           data: {
             campaignId,
             kind: 'PAYOUT',
-            amountKobo: c.amountKobo,
+            amountKobo: owed,
             payazaReference: reference,
             idempotencyKey: `payout:${campaignId}:${attempts + 1}`,
             method: 'bank_transfer',
@@ -131,7 +134,7 @@ export class PaymentsService {
     try {
       const r = await this.provider.payout({
         reference,
-        amountNgn: naira(c.amountKobo),
+        amountNgn: naira(owed),
         bankCode: dest.bankCode,
         accountNumber: dest.accountNumber,
         accountName: dest.accountName,
@@ -144,7 +147,7 @@ export class PaymentsService {
           where: { id: tx.id },
           data: { status: 'processing', providerStatus: r.providerStatus, providerResponse: r.raw as Prisma.InputJsonValue },
         });
-        await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payout initiated', body: `${fmt(c.amountKobo)} is on its way to ${dest.bankName}.`, linkTo: `/transaction/${tx.id}` });
+        await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payout initiated', body: `${fmt(owed)} is on its way to ${dest.bankName}.`, linkTo: `/transaction/${tx.id}` });
       }
     } catch (e) {
       // Provider rejected the request outright: nothing left Payaza, so the payout is failed (retryable).
@@ -157,7 +160,7 @@ export class PaymentsService {
   // ---------- Refund (escrow goes back to the brand) ----------
 
   /**
-   * Returns everything the brand paid (work amount + fee) to the brand's saved account. The campaign leaves its
+   * Returns the work amount to the brand's saved account (the platform keeps its fee). The campaign leaves its
    * current state in the same transaction that records the refund, so a payout and a refund can never both be live.
    * With no account saved the refund is recorded as failed and retried when the brand saves one.
    */
@@ -176,7 +179,7 @@ export class PaymentsService {
           data: {
             campaignId,
             kind: 'REFUND',
-            amountKobo: c.amountKobo + c.feeKobo,
+            amountKobo: c.amountKobo,
             payazaReference: reference,
             idempotencyKey: `refund:${campaignId}:${attempts + 1}`,
             method: 'bank_transfer',
@@ -208,8 +211,65 @@ export class PaymentsService {
     return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
   }
 
+  /**
+   * The brand's share of a dispute split. It is its own REFUND transaction (purpose DISPUTE_SPLIT) and does not move the
+   * campaign: the campaign follows the creator's payout. With no refund account saved it is recorded as failed and
+   * retried when the brand saves one (`retrySplitRefunds`). Safe to call again: one live refund per campaign.
+   */
+  async splitRefund(campaignId: string, actorId: string | undefined, brandKobo: number, reason: string) {
+    const c = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+    if (!c) throw new NotFoundException('Campaign not found');
+    const dest = await this.prisma.payoutDestination.findUnique({ where: { userId: c.brandId } });
+    const reference = ref('R');
+    const attempts = await this.prisma.transaction.count({ where: { campaignId, kind: 'REFUND' } });
+    let tx: Transaction;
+    try {
+      tx = await this.prisma.transaction.create({
+        data: {
+          campaignId,
+          kind: 'REFUND',
+          purpose: 'DISPUTE_SPLIT',
+          amountKobo: brandKobo,
+          payazaReference: reference,
+          idempotencyKey: `refund:${campaignId}:${attempts + 1}`,
+          method: 'bank_transfer',
+          instructions: dest ? { bankCode: dest.bankCode, bankName: dest.bankName, accountNumber: dest.accountNumber, accountName: dest.accountName } : {},
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ConflictException('A refund is already in progress');
+      throw e;
+    }
+    await this.audit(actorId, tx, 'payment.refund_started', null, 'pending', { reason, purpose: 'DISPUTE_SPLIT' });
+    if (!dest) {
+      await this.settle(tx.id, 'failed', 'NO_REFUND_ACCOUNT', {});
+      return;
+    }
+    try {
+      const r = await this.provider.payout({ reference, amountNgn: naira(brandKobo), bankCode: dest.bankCode, accountNumber: dest.accountNumber, accountName: dest.accountName, narration: `AfiCre8 refund ${c.title}`.slice(0, 60) });
+      if (r.status === 'failed') await this.settle(tx.id, 'failed', r.providerStatus, r.raw);
+      else await this.prisma.transaction.update({ where: { id: tx.id }, data: { status: 'processing', providerStatus: r.providerStatus, providerResponse: r.raw as Prisma.InputJsonValue } });
+    } catch (e) {
+      this.log.error(`Split refund ${reference} failed to start: ${(e as Error).message}`);
+      await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
+    }
+  }
+
+  /** The brand saved a refund account: send any split refund that could not go out before. */
+  async retrySplitRefunds(brandId: string) {
+    const failed = await this.prisma.transaction.findMany({ where: { kind: 'REFUND', purpose: 'DISPUTE_SPLIT', status: 'failed', campaign: { brandId } }, orderBy: { createdAt: 'desc' } });
+    const seen = new Set<string>();
+    for (const t of failed) {
+      if (seen.has(t.campaignId)) continue;
+      seen.add(t.campaignId);
+      const live = await this.prisma.transaction.findFirst({ where: { campaignId: t.campaignId, kind: 'REFUND', status: { not: 'failed' } } });
+      if (!live) await this.splitRefund(t.campaignId, brandId, t.amountKobo, 'Refund account saved').catch(() => undefined);
+    }
+  }
+
   /** Funded work nobody delivered by the deadline plus a grace period goes back to the brand. Run by the worker. */
-  async refundOverdue(graceMs = 3 * 24 * 3600_000) {
+  async refundOverdue(graceMs?: number) {
+    graceMs ??= (await this.settings.number('overdueRefundGraceDays')) * 24 * 3600_000;
     const overdue = await this.prisma.campaign.findMany({ where: { status: { in: ['funded', 'in_progress'] }, deadline: { lt: new Date(Date.now() - graceMs) } }, take: 20 });
     for (const c of overdue) {
       await this.refund(c.id, undefined, 'Deadline passed without delivery').catch((e) => this.log.warn(`expire ${c.id}: ${e.message}`));
@@ -270,7 +330,7 @@ export class PaymentsService {
       if (tx.kind === 'FUNDING' && status === 'successful') {
         return { tx, moved: await this.sm.transition(tx.campaignId, 'funded', { reference: tx.payazaReference, tx: db }) };
       }
-      if (tx.kind === 'REFUND') {
+      if (tx.kind === 'REFUND' && tx.purpose !== 'DISPUTE_SPLIT') {
         return { tx, moved: await this.sm.transition(tx.campaignId, status === 'successful' ? 'refunded' : 'refund_failed', { reference: tx.payazaReference, tx: db }) };
       }
       if (tx.kind === 'PAYOUT') {
@@ -296,7 +356,7 @@ export class PaymentsService {
         ? this.notifications.notify(c.brandId, { kind: 'payout', title: 'Refund sent', body: `${total} for “${c.title}” is on its way back to your account.`, linkTo: `/campaigns/${c.id}` })
         : this.notifications.notify(c.brandId, { kind: 'payout', title: 'Add your refund account', body: `We couldn't send your ${total} refund for “${c.title}”. Save a bank account and we'll retry.`, linkTo: '/profile/payment' }));
     } else if (status === 'successful') {
-      await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payment successful', body: `${fmt(c.amountKobo)} paid for “${c.title}”. Ref ${tx.payazaReference}.`, linkTo: `/transaction/${tx.id}` });
+      await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payment successful', body: `${fmt(tx.amountKobo)} paid for “${c.title}”. Ref ${tx.payazaReference}.`, linkTo: `/transaction/${tx.id}` });
       await this.notifications.notify(c.brandId, { kind: 'payout', title: 'Payout completed', body: `“${c.title}” is complete.`, linkTo: `/campaigns/${c.id}` });
     } else {
       await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payout failed', body: `We couldn't pay out “${c.title}”. Check your bank details; we'll retry.`, linkTo: `/profile/payment` });

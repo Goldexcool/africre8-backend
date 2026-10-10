@@ -100,8 +100,8 @@ describe('Golden path (e2e)', () => {
     const admin = await http.post('/auth/login').send({ email: 'admin.dev@africre8.app', password: process.env.SEED_ADMIN_PASSWORD ?? 'x' }).expect(200);
     const aauth = { Authorization: `Bearer ${admin.body.accessToken}` };
     await http.get('/admin/overview').set(brand.auth).expect(403);
-    const disputes = await http.get('/admin/disputes').set(aauth).expect(200);
-    const d = disputes.body.find((x: { campaignId: string }) => x.campaignId === id);
+    const disputes = await http.get(`/admin/disputes?campaignId=${id}&status=ALL`).set(aauth).expect(200);
+    const d = disputes.body.items[0];
 
     await http.put('/profiles/payout-destination').set(creator.auth).send({ bankCode: '000013', bankName: 'GTBank', accountNumber: '0123456789' }).expect(200);
     await http.post(`/admin/disputes/${d.id}/resolve`).set(aauth).send({ outcome: 'release', resolution: 'Work matches the original brief; releasing payment.' }).expect(201);
@@ -112,8 +112,8 @@ describe('Golden path (e2e)', () => {
     // Replaying a stored webhook never creates a second payout.
     const funding = c.body.transactions.find((t: { kind: string }) => t.kind === 'FUNDING');
     await http.post('/webhooks/payaza').send({ transaction_reference: funding.payazaReference, transaction_status: 'Completed' }).expect(200);
-    const hooks = await http.get('/admin/webhooks').set(aauth).expect(200);
-    const hook = hooks.body.find((h: { reference: string }) => h.reference === funding.payazaReference);
+    const hooks = await http.get('/admin/webhooks?view=all&pageSize=100').set(aauth).expect(200);
+    const hook = hooks.body.items.find((h: { reference: string }) => h.reference === funding.payazaReference);
     await http.post(`/admin/webhooks/${hook.id}/replay`).set(aauth).expect(201);
     const payouts = await ctx.prisma.transaction.count({ where: { campaignId: id, kind: 'PAYOUT', status: 'successful' } });
     expect(payouts).toBe(1);

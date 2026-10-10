@@ -20,7 +20,7 @@ describe('Campaigns (e2e)', () => {
     const created = await http.post('/campaigns').set(brand.auth).send({ matchId, ...sampleTerms() }).expect(201);
     const id = created.body.id;
     expect(created.body.status).toBe('pending_agreement');
-    expect(created.body.feeKobo).toBe(1_000_000); // 5% of ₦200,000
+    expect(created.body.feeKobo).toBe(1_600_000); // 8% of ₦200,000
     expect(created.body.requirements[0].hashtags).toEqual(['#adireatelier']);
     await http.post('/campaigns').set(brand.auth).send({ matchId, ...sampleTerms() }).expect(409); // one open campaign per match
 

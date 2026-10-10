@@ -37,13 +37,19 @@ export class OpportunitiesService {
   }
 
   async update(brandId: string, id: string, b: BriefInput) {
-    await this.owned(brandId, id);
+    this.notRemoved(await this.owned(brandId, id));
     const { budgetNgn, ...rest } = b;
     return this.view(await this.prisma.opportunity.update({ where: { id }, data: { ...rest, budgetKobo: budgetNgn * 100, applicationLimit: b.applicationLimit ?? null } }));
   }
 
+  /** A brief an admin removed stays closed: the brand can't edit or republish it. */
+  private notRemoved(o: Opportunity) {
+    if (o.removedAt) throw new ConflictException('AfiCre8 removed this brief, so it can no longer be changed or published.');
+  }
+
   async setStatus(brandId: string, id: string, status: 'PUBLISHED' | 'CLOSED') {
-    await this.owned(brandId, id);
+    const o = await this.owned(brandId, id);
+    if (status === 'PUBLISHED') this.notRemoved(o);
     return this.view(await this.prisma.opportunity.update({ where: { id }, data: { status } }));
   }
 
