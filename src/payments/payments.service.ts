@@ -11,6 +11,7 @@ import { PAYMENT_PROVIDER, type BankTransferInstructions, type PaymentProvider }
 const naira = (kobo: number) => kobo / 100;
 const fmt = (kobo: number) => `₦${naira(kobo).toLocaleString('en-NG')}`;
 const ref = (prefix: string) => `AFC${prefix}${Date.now().toString(36).toUpperCase()}${randomBytes(3).toString('hex').toUpperCase()}`;
+const CARD_CHECKOUT_TTL_MS = 24 * 60 * 60_000; // an unpaid Payaza card checkout never completes after this
 
 @Injectable()
 export class PaymentsService {
@@ -231,6 +232,10 @@ export class PaymentsService {
     if (!tx || tx.status === 'successful' || tx.status === 'failed') return tx;
     const r = tx.kind === 'FUNDING' ? await this.provider.queryFunding(tx.payazaReference, tx.method ?? 'bank_transfer') : await this.provider.queryPayout(tx.payazaReference);
     if (r.status === 'pending') {
+      if (tx.kind === 'FUNDING' && tx.method === 'card' && tx.createdAt.getTime() < Date.now() - CARD_CHECKOUT_TTL_MS) {
+        await this.fail(tx, 'Card checkout abandoned');
+        return this.prisma.transaction.findUnique({ where: { id: tx.id } });
+      }
       if (r.providerStatus && r.providerStatus !== tx.providerStatus) {
         await this.prisma.transaction.update({ where: { id: tx.id }, data: { providerStatus: r.providerStatus } });
       }

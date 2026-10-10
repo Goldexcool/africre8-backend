@@ -15,7 +15,7 @@ export class PayazaProvider implements PaymentProvider {
     private readonly cfg: { publicKey: string; secretKey: string; tenant: 'test' | 'live'; publicUrl: string; transactionPin?: string },
   ) {}
 
-  private async call<T = any>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+  private async call<T = any>(method: 'GET' | 'POST', path: string, body?: unknown, accept400 = false): Promise<T> {
     const res = await fetch(BASE + path, {
       method,
       headers: {
@@ -33,7 +33,7 @@ export class PayazaProvider implements PaymentProvider {
     } catch {
       throw new BadGatewayException(`Payaza ${path} returned non-JSON (${res.status})`);
     }
-    if (!res.ok) {
+    if (!res.ok && !(accept400 && res.status === 400)) {
       this.log.warn(`${method} ${path} -> ${res.status} ${text.slice(0, 300)}`);
       throw new BadGatewayException(json?.message ?? `Payaza error ${res.status}`);
     }
@@ -73,8 +73,10 @@ export class PayazaProvider implements PaymentProvider {
 
   async queryFunding(reference: string, method: string) {
     if (method === 'card') {
-      const r = await this.call('POST', '/card/card_charge/transaction_status', { service_payload: { transaction_reference: reference } });
-      const s = String(r?.data?.transaction_status ?? '');
+      // An unpaid checkout comes back as 400 "Transaction not processed" with response_content.transaction_status "Pending".
+      const r = await this.call('POST', '/card/card_charge/transaction_status', { service_payload: { transaction_reference: reference } }, true);
+      const s = String(r?.data?.transaction_status ?? r?.response_content?.transaction_status ?? '');
+      if (!s && r?.response_code === 400) throw new BadGatewayException(r.response_message ?? 'Payaza error 400');
       return { status: mapCollection(s), raw: r, providerStatus: s };
     }
     const r = await this.call('GET', `/merchant-collection/transfer_notification_controller/transaction-query?transaction_reference=${encodeURIComponent(reference)}`);
