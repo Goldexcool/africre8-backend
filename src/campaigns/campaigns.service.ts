@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateInput, TermsInput } from './campaigns.schemas.js';
 import { CampaignStateMachine } from './state-machine.js';
 
-const FEE_BPS = Number(process.env.PLATFORM_FEE_BPS ?? 500); // 5% platform fee, paid by the brand on top
+const FEE_BPS = Number(process.env.PLATFORM_FEE_BPS || 800); // 8% platform fee, paid by the brand on top
 const EDITABLE: CampaignStatus[] = ['pending_agreement', 'awaiting_funding'];
 const normTag = (t: string, p: string) => (t.startsWith(p) ? t : p + t).toLowerCase();
 
