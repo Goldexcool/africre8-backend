@@ -12,6 +12,7 @@ import {
   parseReviewedMapping,
   recordHash,
   summarize,
+  syntheticCreatorAvatarUrl,
   syntheticEmail,
   unusablePasswordHash,
 } from './demo-import/core.js';
@@ -194,9 +195,10 @@ async function execute(plan: Awaited<ReturnType<typeof inspect>>) {
         const user = await tx.user.create({ data: { email: item.email, passwordHash: unusablePasswordHash(), role: 'CREATOR', status: 'ACTIVE', verificationStatus: 'VERIFIED', onboardedAt: startedAt, emailVerifiedAt: startedAt, openToInvites: source.availability !== 'booked' } });
         creatorId = user.id;
         const normalized = source.commercial_rates.map((rate: Record<string, any>) => Number(rate.base_rate.normalized_usd));
-        await tx.creatorProfile.create({ data: { userId: creatorId, displayName: source.display_name, bio: source.bio, location: `${source.residence.city}, ${source.residence.country}`, category: source.category, niches: source.niches, portfolio: [], priceFromKobo: Math.round(Math.min(...normalized) * 1500 * 100), priceToKobo: Math.round(Math.max(...normalized) * 1500 * 100), availability: source.availability === 'limited' ? 'busy' : source.availability, credibilityScore: 0, ratingAvg: 0, completedCampaigns: 0 } });
+        await tx.creatorProfile.create({ data: { userId: creatorId, displayName: source.display_name, avatarUrl: syntheticCreatorAvatarUrl(process.env.PUBLIC_URL, source.id), bio: source.bio, location: `${source.residence.city}, ${source.residence.country}`, category: source.category, niches: source.niches, portfolio: [], priceFromKobo: Math.round(Math.min(...normalized) * 1500 * 100), priceToKobo: Math.round(Math.max(...normalized) * 1500 * 100), availability: source.availability === 'limited' ? 'busy' : source.availability, credibilityScore: 0, ratingAvg: 0, completedCampaigns: 0 } });
         await tx.socialAccount.createMany({ data: source.socials.map((social: Record<string, any>) => ({ creatorId, platform: social.platform as Platform, handle: social.handle, followers: social.followers, engagementRate: social.engagement_rate_percent })) });
       }
+      await tx.creatorProfile.updateMany({ where: { userId: creatorId!, avatarUrl: null }, data: { avatarUrl: syntheticCreatorAvatarUrl(process.env.PUBLIC_URL, source.id) } });
       const ml = await tx.creatorMlProfile.upsert({
         where: { namespace_sourceCreatorId: { namespace: EXPECTED_NAMESPACE, sourceCreatorId: source.id } },
         create: { creatorId: creatorId!, namespace: EXPECTED_NAMESPACE, sourceCreatorId: source.id, sourceRecordHash: recordHash(source), schemaVersion: dataset.manifest.schema_version, synthetic: true, sourceKind: source.source.kind, portfolioDescription: source.portfolio_description, contentTone: source.content_tone, contentLanguages: source.content_languages, audienceInterests: source.audience_interests, creativeStyles: source.creative_styles, productionCapabilities: source.production_capabilities, typicalLeadTimeDays: source.typical_lead_time_days, imageAssetId: source.image_asset_id, sourceAvailability: source.availability, commercialExperience: source.commercial_experience },

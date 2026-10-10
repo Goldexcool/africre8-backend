@@ -1,6 +1,8 @@
 # Demo-v2 database import
 
-The importer is exclusively for a disposable database whose name visibly contains `demo`, `test`, or `local`. It rejects `NODE_ENV=production`, production/staging names, Railway hosts, mismatched fingerprints, and write mode without a second opt-in. It never reads `generator_truth.json` and never creates operational campaigns, submissions, verifications, disputes, transactions, audit events, or payout records.
+The importer is restricted to disposable local databases whose name visibly contains `demo`, `test`, or `local`. It rejects production, staging, and Railway targets, mismatched fingerprints, and write mode without a second opt-in. It never reads `generator_truth.json` and never creates operational campaigns, submissions, verifications, disputes, transactions, audit events, or payout records.
+
+For enrichment of existing Railway records, use [railway-ml-and-demo-database.md](railway-ml-and-demo-database.md). Full synthetic imports remain isolated-test-only. Do not use the legacy `db:seed` command for either workflow.
 
 ## Validate files without a database
 
@@ -81,4 +83,4 @@ createdb africre8_demo
 npx prisma migrate deploy
 ```
 
-Never run reset commands against a shared database. Synthetic portrait assets remain pending, so newly created profiles have no portrait or portfolio images. Demo opportunities are operational display records, but synthetic historical outcomes remain isolated in `DemoMlEvidenceEvent`.
+Never run reset commands against a shared database. Realistic synthetic portrait assets remain pending; newly created profiles use explicitly synthetic generated SVG placeholders under the configured `PUBLIC_URL`, while portfolio images remain empty. Demo opportunities are operational display records, but synthetic historical outcomes remain isolated in `DemoMlEvidenceEvent`.

@@ -13,6 +13,7 @@ import {
   recordHash,
   summarize,
   syntheticEmail,
+  syntheticCreatorAvatarUrl,
 } from '../prisma/demo-import/core.js';
 
 const ROOT = resolve('services/ml/data/demo-v2');
@@ -51,6 +52,15 @@ describe('demo-v2 importer preflight', () => {
       contracts: 360,
     });
     expect(dataset.eventSequence.size).toBe(3000);
+    expect(dataset.images).toHaveLength(500);
+    expect(dataset.images.filter((image) => image.status === 'not_generated')).toHaveLength(500);
+    expect(dataset.images.filter((image) => image.public_url)).toHaveLength(0);
+    expect(new Set(dataset.images.map((image) => image.creator_id))).toEqual(new Set(dataset.creators.map((creator) => creator.id)));
+  });
+
+  it('builds stable, self-hosted synthetic avatar references', () => {
+    expect(syntheticCreatorAvatarUrl('https://api.example.test/', 'creator-one')).toBe('https://api.example.test/demo-media/creators/creator-one.svg');
+    expect(() => syntheticCreatorAvatarUrl(undefined, 'creator-one')).toThrow(/PUBLIC_URL/);
   });
 
   it('rejects a changed public dataset file', () => {

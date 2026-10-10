@@ -9,6 +9,16 @@ export const EXPECTED_COUNTS = { creators: 500, brands: 50, opportunities: 150, 
 export const FORBIDDEN_KEYS = new Set(['generator_truth', 'reliability', 'delivery_consistency', 'work_quality', 'responsiveness']);
 export const PLATFORMS = new Set(['instagram', 'tiktok', 'youtube', 'x', 'facebook']);
 
+export function syntheticCreatorAvatarUrl(publicUrl: string | undefined, sourceCreatorId: string) {
+  assert(publicUrl, 'PUBLIC_URL is required to create synthetic creator image references');
+  const base = new URL(publicUrl);
+  assert(['http:', 'https:'].includes(base.protocol), 'PUBLIC_URL must use http or https');
+  base.pathname = `${base.pathname.replace(/\/$/, '')}/demo-media/creators/${encodeURIComponent(sourceCreatorId)}.svg`;
+  base.search = '';
+  base.hash = '';
+  return base.toString();
+}
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type RecordJson = Record<string, any>;
 export type DemoDataset = {
@@ -212,8 +222,8 @@ export function assertApprovedDemoTarget(input: {
   assert(input.databaseUrl, 'DATABASE_URL is required');
   const identity = databaseIdentity(input.databaseUrl);
   assert(input.databaseEnvironment === 'demo', 'DEMO_DATABASE_ENV must equal demo');
-  assert(input.nodeEnvironment !== 'production', 'imports are disabled when NODE_ENV=production');
-  assert(!/(prod|production|staging|railway)/i.test(`${identity.host}/${identity.database}`), 'production, staging and Railway targets are forbidden');
+  assert(input.nodeEnvironment !== 'production', 'demo imports are disabled when NODE_ENV=production');
+  assert(!/(prod|production|staging|railway)/i.test(`${identity.host}/${identity.database}`), 'production, staging, and Railway targets are forbidden');
   assert(/(demo|test|local)/i.test(identity.database), 'database name must visibly identify a demo, test or local database');
   assert(input.expectedFingerprint === identity.fingerprint, 'DEMO_DATABASE_FINGERPRINT does not match DATABASE_URL');
   assert(input.confirmedFingerprint === identity.fingerprint, 'CLI fingerprint confirmation is missing or incorrect');
