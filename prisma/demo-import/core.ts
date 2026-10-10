@@ -9,6 +9,16 @@ export const EXPECTED_COUNTS = { creators: 500, brands: 50, opportunities: 150, 
 export const FORBIDDEN_KEYS = new Set(['generator_truth', 'reliability', 'delivery_consistency', 'work_quality', 'responsiveness']);
 export const PLATFORMS = new Set(['instagram', 'tiktok', 'youtube', 'x', 'facebook']);
 
+export function syntheticCreatorAvatarUrl(publicUrl: string | undefined, sourceCreatorId: string) {
+  assert(publicUrl, 'PUBLIC_URL is required to create synthetic creator image references');
+  const base = new URL(publicUrl);
+  assert(['http:', 'https:'].includes(base.protocol), 'PUBLIC_URL must use http or https');
+  base.pathname = `${base.pathname.replace(/\/$/, '')}/demo-media/creators/${encodeURIComponent(sourceCreatorId)}.svg`;
+  base.search = '';
+  base.hash = '';
+  return base.toString();
+}
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type RecordJson = Record<string, any>;
 export type DemoDataset = {

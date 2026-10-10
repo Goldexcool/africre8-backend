@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -53,6 +53,15 @@ describe('consolidation scope', () => {
         loadAndValidateDataset('services/ml/data/demo-v2'),
       ),
     ).not.toThrow();
+  });
+
+  it('assigns generated avatars only to explicitly synthetic identities', () => {
+    const source = readFileSync('prisma/consolidate-dataset.ts', 'utf8');
+    expect(source).toContain("if (plan.kind === 'synthetic')");
+    expect(source).toContain('avatarUrl: syntheticCreatorAvatarUrl(');
+    expect(source).not.toMatch(
+      /creatorProfile\.updateMany\([\s\S]*plan\.kind === 'production'/,
+    );
   });
 
   it('requires evidence identities and all related opportunities to be explicitly approved', () => {

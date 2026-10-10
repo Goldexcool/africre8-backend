@@ -25,6 +25,16 @@ The consolidated dataset uses existing operational tables as the source of truth
 | Transactions, payouts and webhooks | Operational tables | None | Retained unchanged and never written by consolidation. |
 | Credibility evidence | Existing reviewed evidence requires manual provenance decision | Explicitly scoped evidence for new synthetic identities only | Synthetic evidence cannot attach to a retained real identity. No operational achievement is inferred. |
 
+## Creator images
+
+`CreatorProfile.avatarUrl` and `portfolio` are the application's public media references. Production creators retain both fields unchanged during consolidation; the process neither copies nor reassigns R2 objects and does not alter ownership paths.
+
+Demo-v2 contains 500 image metadata records and every creator references one, but all 500 assets are currently marked `not_generated` with `public_url: null`. Newly approved synthetic identities therefore receive a deterministic URL under `${PUBLIC_URL}/demo-media/creators/<source-id>.svg`. NestJS generates these abstract SVG placeholders locally, labels them as synthetic, and embeds no real person's photo or external content. This supplies a stable frontend-compatible `avatarUrl` while realistic fictional portraits remain a separate, reviewed asset-generation and R2-upload step.
+
+`PUBLIC_URL` must be the externally reachable NestJS origin before a write. The verifier requires every introduced synthetic creator to have an HTTP(S) URL using the demo-media route. It does not claim that production or remote R2 URLs are reachable; remote object validation requires a separately authorized storage audit.
+
+The production portrait workflow is documented in `docs/synthetic-portraits.md`. Validated portraits use stable R2 keys under `africre8/demo/creators/` and public API proxy URLs under `/media/africre8/demo/creators/`. Database activation is a separate, fingerprint-confirmed operation restricted to provenance-marked synthetic identities. Until then, the generated SVG remains the safe fallback.
+
 ## Approved scope
 
 The scope file is the human-reviewed decision record. Start with `prisma/consolidation/scope.example.json` and keep the production copy outside source control.

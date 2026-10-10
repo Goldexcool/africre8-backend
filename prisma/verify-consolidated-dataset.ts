@@ -44,7 +44,9 @@ try {
     provenance,
   ] = await Promise.all([
     prisma.user.count(),
-    prisma.creatorProfile.count(),
+    prisma.creatorProfile.findMany({
+      select: { userId: true, avatarUrl: true },
+    }),
     prisma.brandProfile.count(),
     prisma.opportunity.count(),
     prisma.campaign.count(),
@@ -88,6 +90,21 @@ try {
       .filter((row) => row.entityType === 'creator' && row.synthetic)
       .map((row) => row.entityId),
   );
+  const invalidSyntheticImages = creators.filter((row) => {
+    if (!syntheticCreators.has(row.userId)) return false;
+    if (!row.avatarUrl) return true;
+    try {
+      const url = new URL(row.avatarUrl);
+      const fallback = url.pathname.startsWith('/demo-media/creators/') && url.pathname.endsWith('.svg');
+      const portrait = url.pathname.startsWith('/media/africre8/demo/creators/') && url.pathname.endsWith('.webp');
+      return !['http:', 'https:'].includes(url.protocol) || (!fallback && !portrait);
+    } catch {
+      return true;
+    }
+  });
+  const retainedProductionCreators = creators.filter(
+    (row) => !syntheticCreators.has(row.userId),
+  );
   const evidenceViolations = evidence.filter(
     (row) =>
       !row.synthetic || !syntheticCreators.has(row.creatorMlProfile.creatorId),
@@ -116,9 +133,10 @@ try {
   const valid =
     !!latestRun &&
     latestRun.status === 'completed' &&
-    creatorCoverage === creators &&
+    creatorCoverage === creators.length &&
     opportunityCoverage === opportunities &&
-    evidenceViolations.length === 0;
+    evidenceViolations.length === 0 &&
+    invalidSyntheticImages.length === 0;
   const report = {
     valid,
     target: {
@@ -127,7 +145,7 @@ try {
     },
     operationalCounts: {
       users,
-      creators,
+      creators: creators.length,
       brands,
       opportunities,
       campaigns,
@@ -143,6 +161,17 @@ try {
     provenance: {
       records: provenance.length,
       syntheticCreators: syntheticCreators.size,
+    },
+    imageCoverage: {
+      syntheticCreators: syntheticCreators.size,
+      validSyntheticImageReferences:
+        syntheticCreators.size - invalidSyntheticImages.length,
+      invalidSyntheticImageReferences: invalidSyntheticImages.length,
+      retainedProductionCreators: retainedProductionCreators.length,
+      retainedProductionImageReferences: retainedProductionCreators.filter(
+        (row) => !!row.avatarUrl,
+      ).length,
+      remoteObjectsChecked: false,
     },
     evidenceIsolation: {
       events: evidence.length,

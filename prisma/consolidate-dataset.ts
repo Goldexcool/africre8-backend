@@ -8,6 +8,7 @@ import {
 import {
   loadAndValidateDataset,
   recordHash,
+  syntheticCreatorAvatarUrl,
   syntheticEmail,
   unusablePasswordHash,
 } from './demo-import/core.js';
@@ -563,6 +564,10 @@ try {
                 data: {
                   userId: entityId,
                   displayName: plan.source.display_name,
+                  avatarUrl: syntheticCreatorAvatarUrl(
+                    process.env.PUBLIC_URL,
+                    plan.sourceId,
+                  ),
                   bio: plan.source.bio,
                   location: `${plan.source.residence.city}, ${plan.source.residence.country}`,
                   category: plan.source.category,
@@ -591,6 +596,16 @@ try {
               throw new Error(
                 `creator ${plan.sourceId} has no resolved target`,
               );
+            if (plan.kind === 'synthetic')
+              await tx.creatorProfile.updateMany({
+                where: { userId: entityId, avatarUrl: null },
+                data: {
+                  avatarUrl: syntheticCreatorAvatarUrl(
+                    process.env.PUBLIC_URL,
+                    plan.sourceId,
+                  ),
+                },
+              });
             creatorIds.set(plan.sourceId, entityId);
             const ml = await tx.creatorMlProfile.upsert({
               where: { creatorId: entityId },

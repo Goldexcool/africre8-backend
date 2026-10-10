@@ -16,6 +16,10 @@ ML_SEMANTIC_TIMEOUT_MS=120000
 
 ## 1. Identify and back up the exact database
 
+Set `PUBLIC_URL` to the externally reachable HTTPS origin of the NestJS Railway service. Synthetic creator placeholders are served at `/demo-media/creators/<source-id>.svg`; no R2 credentials or object writes are required for them. Existing production `avatarUrl` and `portfolio` values remain unchanged and continue to depend on the configured Cloudflare R2 service and `/media/*` proxy.
+
+For photorealistic synthetic portraits, complete and verify the offline workflow in `docs/synthetic-portraits.md` before any Railway action. Upload all 500 optimized WebP files to the separate `africre8/demo/creators/` R2 namespace, verify sample media URLs, then run the fingerprint-confirmed database activation command. Never copy a production creator's object key to a synthetic identity.
+
 1. In Railway, record the project, environment, PostgreSQL service name, database name, service ID, and volume ID. Have a second administrator confirm them.
 2. Record baseline counts for users, creators, brands, opportunities, interests, matches, campaigns, submissions, disputes, transactions, notifications, and Prisma migrations.
 3. Create a Railway volume backup and an encrypted custom-format logical backup:
@@ -89,6 +93,7 @@ Rerun the same scope on the clone and verify that user, creator, brand, opportun
 5. Run the dry-run command against the paused live database. Review the fresh production fingerprint, plan hash, counts, and conflicts. Do not reuse hashes from the restored clone.
 6. With the fresh restored-backup reference, enable the two write environment switches and run the exact reviewed write command.
 7. Immediately disable both write switches and run `data:consolidate:verify`.
+   The report must show zero invalid synthetic image references. Test at least one generated demo avatar through the public NestJS URL and separately spot-check retained production `/media/*` images; database validation alone cannot prove that remote R2 objects or permissions are available.
 8. Start an isolated API process against the consolidated database with `PAYMENT_PROVIDER=mock`. Verify logins, discovery, opportunities, relationships, campaigns, recommendations, credibility, and transaction visibility.
 9. Restore the normal API and worker only after verification passes. Monitor PostgreSQL, Redis, NestJS, and FastAPI logs and metrics.
 

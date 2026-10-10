@@ -83,4 +83,4 @@ createdb africre8_demo
 npx prisma migrate deploy
 ```
 
-Never run reset commands against a shared database. Synthetic portrait assets remain pending, so newly created profiles have no portrait or portfolio images. Demo opportunities are operational display records, but synthetic historical outcomes remain isolated in `DemoMlEvidenceEvent`.
+Never run reset commands against a shared database. Realistic synthetic portrait assets remain pending; newly created profiles use explicitly synthetic generated SVG placeholders under the configured `PUBLIC_URL`, while portfolio images remain empty. Demo opportunities are operational display records, but synthetic historical outcomes remain isolated in `DemoMlEvidenceEvent`.

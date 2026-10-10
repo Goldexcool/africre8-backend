@@ -59,6 +59,14 @@ try {
   const counts = {
     users: await prisma.user.count(),
     creators: await prisma.creatorProfile.count(),
+    creatorImages: await prisma.creatorProfile.count({
+      where: {
+        OR: [
+          { avatarUrl: { startsWith: `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/demo-media/creators/` } },
+          { avatarUrl: { startsWith: `${(process.env.PUBLIC_URL ?? '').replace(/\/$/, '')}/media/africre8/demo/creators/` } },
+        ],
+      },
+    }),
     brands: await prisma.brandProfile.count(),
     opportunities: await prisma.opportunity.count(),
     creatorMlProfiles: await prisma.creatorMlProfile.count({
@@ -86,6 +94,7 @@ try {
   const expected = {
     users: 551,
     creators: 500,
+    creatorImages: 500,
     brands: 50,
     opportunities: 150,
     creatorMlProfiles: 500,

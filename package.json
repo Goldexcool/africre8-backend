@@ -31,6 +31,11 @@
     "ml:enrich:verify": "node --import tsx prisma/verify-ml-enrichment.ts",
     "data:consolidate": "node --import tsx prisma/consolidate-dataset.ts",
     "data:consolidate:verify": "node --import tsx prisma/verify-consolidated-dataset.ts",
+    "portraits:plan": "node --import tsx scripts/portraits/cli.ts plan",
+    "portraits:generate": "node --import tsx scripts/portraits/cli.ts generate",
+    "portraits:verify": "node --import tsx scripts/portraits/cli.ts verify",
+    "portraits:upload": "node --import tsx scripts/portraits/cli.ts upload",
+    "portraits:apply-db": "node --import tsx scripts/portraits/cli.ts apply-db",
     "start:worker": "node dist/worker.js",
     "dev:worker": "nest start --watch --entryFile worker"
   },
@@ -59,6 +64,7 @@
     "prisma": "7.10.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.5",
     "socket.io": "4.8.3",
     "zod": "^4.6.5"
   },
