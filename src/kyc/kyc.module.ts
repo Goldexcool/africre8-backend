@@ -68,6 +68,23 @@ export class MockKycProvider implements KycProvider {
   }
 }
 
+/** Production never answers with the mock: anyone could pass with its test NIN. Without Dojah, KYC is simply unavailable. */
+export class UnavailableKycProvider implements KycProvider {
+  readonly name = 'unavailable';
+  async verifyNin(): Promise<KycResult> {
+    return { outcome: 'unavailable' };
+  }
+}
+
+export function kycProvider(env: NodeJS.ProcessEnv = process.env): KycProvider {
+  if (env.KYC_PROVIDER === 'dojah') return new DojahProvider();
+  if (env.NODE_ENV === 'production') {
+    new Logger('Kyc').error(`KYC_PROVIDER=${env.KYC_PROVIDER ?? '(unset)'} in production: identity checks are off until KYC_PROVIDER=dojah`);
+    return new UnavailableKycProvider();
+  }
+  return new MockKycProvider();
+}
+
 export const KYC_PROVIDER = Symbol('KYC_PROVIDER');
 
 const submitSchema = z.object({
@@ -155,7 +172,7 @@ class KycController {
 @Module({
   controllers: [KycController],
   providers: [
-    { provide: KYC_PROVIDER, useFactory: (): KycProvider => (process.env.KYC_PROVIDER === 'dojah' ? new DojahProvider() : new MockKycProvider()) },
+    { provide: KYC_PROVIDER, useFactory: kycProvider },
     KycService,
   ],
   exports: [KycService],
