@@ -83,6 +83,8 @@ export class DiscoveryService {
                 rank: r.rank,
                 score: r.score,
                 summary: r.explanation.summary,
+                // which parts of the brief this creator matches (niche, category, ...), strongest first
+                matched: Object.entries(r.explanation.components).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a).map(([k]) => k),
                 credibility: r.credibility ? { status: r.credibility.status, score: r.credibility.credibility_score, tier: r.credibility.evidence_tier } : null,
               }
             : null,

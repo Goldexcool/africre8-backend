@@ -49,7 +49,7 @@ describe.skipIf(!mlUp)('Recommender by default (e2e, live ML service)', () => {
     const d = await http.get(`/discover?opportunityId=${o.body.id}&limit=50`).set(brand.auth).expect(200);
     expect(d.body.ranking).toMatchObject({ source: 'recommender', model: { mode: 'structured' } });
     const card = d.body.items.find((c: { id: string }) => c.id === creator.id);
-    expect(card.match).toMatchObject({ rank: expect.any(Number), score: expect.any(Number), summary: expect.any(String) });
+    expect(card.match).toMatchObject({ rank: expect.any(Number), score: expect.any(Number), summary: expect.any(String), matched: expect.any(Array) });
     expect(card.match.credibility).toMatchObject({ status: expect.any(String), tier: expect.any(String) });
     // recommended creators come first, in rank order
     const ranks = d.body.items.filter((c: { match: unknown }) => c.match).map((c: { match: { rank: number } }) => c.match.rank);
