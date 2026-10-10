@@ -4,7 +4,7 @@ AfriCre8 uses a zero-cost pool of exactly 10 locally generated fictional African
 
 ## Local assets and optimization
 
-Supply `portrait-001` through `portrait-010` as `.png`, `.jpg`, `.jpeg`, or `.webp` under the Git-ignored directory `services/ml/generated/portrait-pool/source/`. Use fictional adults only, with no celebrity likenesses, production-user photos, logos, or watermarks. Review `npm run portrait-pool:plan` first; it reports the categories and representative niches for each slot.
+Supply `portrait-001` through `portrait-010` as `.png`, `.jpg`, `.jpeg`, or `.webp` under the directory `services/ml/generated/portrait-pool/source/`. Use fictional adults only, with no celebrity likenesses, production-user photos, logos, or watermarks. Review `npm run portrait-pool:plan` first; it reports the categories and representative niches for each slot.
 
 ```powershell
 npm run portrait-pool:plan
@@ -12,7 +12,7 @@ npm run portrait-pool:optimize
 npm run portrait-pool:verify
 ```
 
-Optimization produces 512×512 WebP files under `services/ml/generated/portrait-pool/optimized/`. Verification requires 10 valid, distinct content hashes and 500 balanced assignments. Source files, optimized files, and the local manifest are excluded from Git.
+Optimization produces 512×512 WebP files under `services/ml/generated/portrait-pool/optimized/`. Verification requires 10 valid, distinct content hashes and 500 balanced assignments. The ten PNG source portraits, ten optimized WebP portraits, and contact-sheet preview can be committed to Git. The machine-specific manifest and temporary helper files remain ignored.
 
 ## R2 and display overrides
 
