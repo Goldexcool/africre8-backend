@@ -1,0 +1,116 @@
+{
+  "audience_profiles": {
+    "diaspora": 95,
+    "domestic": 210,
+    "global": 71,
+    "regional": 124
+  },
+  "brand_types": {
+    "african_business": 16,
+    "global_agency": 10,
+    "international_company": 12,
+    "multinational": 12
+  },
+  "countries": 18,
+  "counts": {
+    "brands": 50,
+    "creators": 500,
+    "evaluation": 45,
+    "images": 500,
+    "interactions": 3000,
+    "opportunities": 150
+  },
+  "creators_with_domestic_audience": 500,
+  "creators_without_english": 105,
+  "credibility_evidence": {
+    "late_submissions": 57,
+    "ratings": {
+      "2": 20,
+      "3": 41,
+      "4": 99,
+      "5": 83
+    },
+    "resolved_dispute_attribution": {
+      "brand": 4,
+      "creator": 3,
+      "neither": 5,
+      "shared": 3
+    }
+  },
+  "cross_category_campaigns_with_rationale": 7,
+  "evaluation_coverage": {
+    "cold_start_judgments": 351,
+    "cross_border_scenarios": 34,
+    "cross_category_scenarios": 2,
+    "currencies": [
+      "EGP",
+      "EUR",
+      "GBP",
+      "GHS",
+      "KES",
+      "NGN",
+      "RWF",
+      "UGX",
+      "USD",
+      "XOF",
+      "ZAR"
+    ],
+    "required_languages": [
+      "ar",
+      "en",
+      "fr",
+      "pt",
+      "rw",
+      "sw"
+    ]
+  },
+  "evaluation_judgments": {
+    "highly_relevant": 83,
+    "not_relevant": 161,
+    "relevant": 87,
+    "weak": 209
+  },
+  "event_types": {
+    "cancellation": 62,
+    "completion": 273,
+    "contract": 360,
+    "dispute": 15,
+    "dispute_resolved": 15,
+    "invitation": 430,
+    "match": 410,
+    "negotiation": 393,
+    "rating": 243,
+    "revision_requested": 40,
+    "revision_submitted": 40,
+    "submission": 331,
+    "verification": 371,
+    "withdrawal": 17
+  },
+  "experience": {
+    "creators_with_disputes": 15,
+    "creators_with_ratings": 125,
+    "four_plus_contracts": 39,
+    "zero_contracts": 347
+  },
+  "opportunity_currencies": {
+    "EGP": 3,
+    "EUR": 24,
+    "GBP": 15,
+    "GHS": 6,
+    "KES": 6,
+    "NGN": 6,
+    "RWF": 6,
+    "UGX": 3,
+    "USD": 66,
+    "XOF": 9,
+    "ZAR": 6
+  },
+  "unique_biographies": 500,
+  "unique_briefs": 150,
+  "verification_outcomes": {
+    "fail": 15,
+    "insufficient_evidence": 28,
+    "partial": 54,
+    "pass": 274
+  }
+}

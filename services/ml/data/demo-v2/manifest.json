@@ -1,0 +1,37 @@
+{
+  "config": {
+    "brands": 50,
+    "creators": 500,
+    "evaluation_scenarios": 45,
+    "interactions": 3000,
+    "opportunities": 150,
+    "reference_date": "2026-10-09",
+    "seed": 20261009
+  },
+  "files_sha256": {
+    "brands.json": "613c6ebaf795feed92683147e47971b56d6b11510f8ed00da0e865f9c90244c7",
+    "creators.json": "cb380ffa2c6fa13661c71aa4ccff277a88fb170cf01412632c63b4edc42e2ab3",
+    "evaluation.json": "22cf4540d3f123f630eb473c2f92740ba506ad6e13b304f78041fb8073dc04ff",
+    "generator_truth.json": "2b2011acbbd58b43531c0ea12e74ee2a4b1c398e18e5faf32b8de07756b8aba0",
+    "images.json": "4e4a5cb02e8cad63a53f6355b80cae314577d7f5a0aa3d9c56f84471c18eff71",
+    "interactions.json": "b4cc0dc305c5baedf1cfac795afa62a02a70931898389d20316512d48413dda2",
+    "opportunities.json": "3ce82fdea26f6259affe43b8c167d14a4b32512b185dddf3ef522d55527ac01c"
+  },
+  "generator_version": "2.0",
+  "identity_source": "v1 deterministic generator; IDs, names, and image IDs preserved",
+  "namespace": "africre8-demo-v2",
+  "rate_version": "synthetic-usd-reference-v1",
+  "schema_version": "2.0",
+  "separation": {
+    "held_out_evaluation": "evaluation.json",
+    "private_generator_traits": "generator_truth.json",
+    "public_features": "creators.json"
+  },
+  "source_fixture_sha256": "de521175887e638a4ede29bf110db8599d0a7d00ec4f2eba7a5bff3c8c9c5d53",
+  "synthetic": true,
+  "warnings": [
+    "Fictional demo data; no real partnership, performance, payment quote, or accuracy claim.",
+    "generator_truth.json is evaluation-only and prohibited as model input.",
+    "Portraits are stable pending references; no images were generated."
+  ]
+}

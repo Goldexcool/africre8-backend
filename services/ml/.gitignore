@@ -1,0 +1,41 @@
+__pycache__/
+*.pyc
+.venv/
+.venv.*/
+venv/
+env/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Test, type-checker, formatter, and coverage caches
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Downloaded model artifacts and experiment outputs
+models/
+huggingface/
+wandb/
+mlruns/
+*.onnx
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.joblib
+*.pkl
+
+# Evaluation-only latent traits are regenerated locally and never published.
+data/demo-v2/generator_truth.json
+
+# Editor and temporary files
+*.tmp
+*.temp
+*.swp
+*~
