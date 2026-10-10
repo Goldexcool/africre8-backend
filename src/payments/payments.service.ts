@@ -151,8 +151,8 @@ export class PaymentsService {
       // Provider rejected the request outright: nothing left Payaza, so the payout is failed (retryable).
       this.log.error(`Payout ${reference} failed to start: ${(e as Error).message}`);
       await this.settle(tx.id, 'failed', 'REQUEST_FAILED', { error: (e as Error).message });
-      // keep Payaza's reason where the admin console shows it ("Transfer limit exceeded.")
-      await this.prisma.transaction.update({ where: { id: tx.id }, data: { failureReason: `Payaza: ${(e as Error).message}`.slice(0, 300) } });
+      // the creator, the brand and the admin console all read this ("Payaza's transfer limit was reached ...")
+      await this.prisma.transaction.update({ where: { id: tx.id }, data: { failureReason: payoutFailure((e as Error).message).reason } });
     }
     return this.view(await this.prisma.transaction.findUniqueOrThrow({ where: { id: tx.id } }));
   }
@@ -318,7 +318,11 @@ export class PaymentsService {
       await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payment successful', body: `${fmt(c.amountKobo)} paid for “${c.title}”. Ref ${tx.payazaReference}.`, linkTo: `/transaction/${tx.id}` });
       await this.notifications.notify(c.brandId, { kind: 'payout', title: 'Payout completed', body: `“${c.title}” is complete.`, linkTo: `/campaigns/${c.id}` });
     } else {
-      await this.notifications.notify(c.creatorId, { kind: 'payout', title: 'Payout failed', body: `We couldn't pay out “${c.title}”. Check your bank details; we'll retry.`, linkTo: `/profile/payment` });
+      // Say what actually went wrong: a bank detail the creator can fix, or a provider limit only AfiCre8 can fix.
+      const why = payoutFailure(String((raw as { error?: unknown; response_message?: unknown } | undefined)?.error ?? (raw as { response_message?: unknown } | undefined)?.response_message ?? ''));
+      const amount = fmt(tx.amountKobo);
+      await this.notifications.notify(c.creatorId, { kind: 'payout', title: why.bank ? 'Check your bank details' : 'Payout delayed', body: why.creator(amount, c.title), linkTo: why.bank ? '/profile/payment' : `/campaigns/${c.id}` });
+      await this.notifications.notify(c.brandId, { kind: 'payout', title: 'Payout delayed', body: why.brand(amount, c.title), linkTo: `/campaigns/${c.id}` });
     }
   }
 
@@ -409,4 +413,32 @@ export class PaymentsService {
       data: { actorId, action, entity: 'Transaction', entityId: tx.id, fromState: from, toState: to, reference: tx.payazaReference, meta: meta ?? { campaignId: tx.campaignId } },
     });
   }
+}
+
+/**
+ * Why a payout did not go through, in words for each reader. A provider limit is AfiCre8's to fix (the creator does
+ * nothing); a bank-detail problem is the creator's. The money stays held either way, so every message says so.
+ */
+export function payoutFailure(providerMessage: string) {
+  const m = providerMessage.toLowerCase();
+  if (/limit/.test(m))
+    return {
+      bank: false,
+      reason: "Payaza's transfer limit was reached. AfiCre8 is raising it and will retry; your money is held safely.",
+      creator: (amount: string, title: string) => `Your ${amount} for “${title}” is safe. Our payment provider's transfer limit was reached, so the payout is delayed. We're fixing it and will pay you automatically; you don't need to do anything.`,
+      brand: (amount: string, title: string) => `The ${amount} payout for “${title}” is delayed by our payment provider's transfer limit. Nothing more is charged to you; we'll retry automatically.`,
+    };
+  if (/account|beneficiary|bank|nuban|name/.test(m))
+    return {
+      bank: true,
+      reason: 'The bank did not accept these account details. Check the account number and bank, then save them to retry.',
+      creator: (amount: string, title: string) => `We couldn't send your ${amount} for “${title}” because the bank did not accept your account details. Check them in Payment details; saving them retries the payout. Your money is safe.`,
+      brand: (amount: string, title: string) => `The ${amount} payout for “${title}” is waiting for the creator to correct their bank details. Nothing more is charged to you.`,
+    };
+  return {
+    bank: false,
+    reason: "The bank transfer didn't go through. Your money is held safely and AfiCre8 will retry.",
+    creator: (amount: string, title: string) => `The transfer of your ${amount} for “${title}” didn't go through. Your money is safe and we'll retry; you don't need to do anything.`,
+    brand: (amount: string, title: string) => `The ${amount} payout for “${title}” didn't go through on the first try. Nothing more is charged to you; we'll retry.`,
+  };
 }
