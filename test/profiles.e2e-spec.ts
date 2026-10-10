@@ -46,5 +46,11 @@ describe('Profiles (e2e)', () => {
     const me = await http.get('/auth/me').set(auth).expect(200);
     expect(me.body.onboardedAt).toBeTruthy();
     await http.put('/profiles/payout-destination').set(auth).send({ bankCode: '058', bankName: 'GTBank', accountNumber: '123' }).expect(400);
+    // a photo can be set, then removed with null; fields not sent are kept
+    await http.put('/profiles/creator').set(auth).send({ displayName: 'Test Creator', avatarUrl: 'https://example.com/a.jpg' }).expect(200);
+    await http.put('/profiles/creator').set(auth).send({ displayName: 'Test Creator', avatarUrl: null }).expect(200);
+    const after = await http.get('/auth/me').set(auth).expect(200);
+    expect(after.body.creatorProfile.avatarUrl).toBeNull();
+    expect(after.body.creatorProfile.location).toBe('Lagos, Nigeria');
   });
 });

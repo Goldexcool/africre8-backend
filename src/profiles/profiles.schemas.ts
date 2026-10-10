@@ -4,7 +4,7 @@ const platform = z.enum(['instagram', 'tiktok', 'youtube', 'x', 'facebook']);
 
 export const creatorSchema = z.object({
   displayName: z.string().min(2),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().url().nullable().optional(), // null removes the photo
   bio: z.string().max(500).optional(),
   location: z.string().optional(),
   category: z.string().optional(),
@@ -31,9 +31,9 @@ export type CreatorInput = z.infer<typeof creatorSchema>;
 
 export const brandSchema = z.object({
   businessName: z.string().min(2),
-  logoUrl: z.string().url().optional(),
+  logoUrl: z.string().url().nullable().optional(),
   industry: z.string().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().nullable().optional(),
   contactName: z.string().optional(),
   location: z.string().optional(),
   about: z.string().max(1000).optional(),
