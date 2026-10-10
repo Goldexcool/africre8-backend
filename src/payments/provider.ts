@@ -16,7 +16,8 @@ export type Customer = { email: string; firstName: string; lastName: string; pho
 export interface PaymentProvider {
   readonly name: string;
   createFunding(input: { reference: string; amountNgn: number; method: 'bank_transfer' | 'card'; customer: Customer; description: string }): Promise<FundingInstructions>;
-  queryFunding(reference: string, method: string): Promise<{ status: ProviderStatus; raw: unknown; providerStatus?: string }>;
+  /** `amountNgn`: what the payer actually paid, when the provider reports it. */
+  queryFunding(reference: string, method: string): Promise<{ status: ProviderStatus; raw: unknown; providerStatus?: string; amountNgn?: number }>;
   simulateBankTransfer?(reference: string, instructions: BankTransferInstructions): Promise<{ ok: boolean; message: string }>;
   payout(input: { reference: string; amountNgn: number; bankCode: string; accountNumber: string; accountName: string; narration: string }): Promise<{ status: ProviderStatus | 'processing'; raw: unknown; providerStatus?: string }>;
   queryPayout(reference: string): Promise<{ status: ProviderStatus; raw: unknown; providerStatus?: string }>;

@@ -230,7 +230,13 @@ export class PaymentsService {
   async reconcile(transactionId: string) {
     const tx = await this.prisma.transaction.findUnique({ where: { id: transactionId } });
     if (!tx || tx.status === 'successful' || tx.status === 'failed') return tx;
-    const r = tx.kind === 'FUNDING' ? await this.provider.queryFunding(tx.payazaReference, tx.method ?? 'bank_transfer') : await this.provider.queryPayout(tx.payazaReference);
+    // A card checkout is known to Payaza by its own id (learned from the signed webhook), not by our reference.
+    const r = tx.kind === 'FUNDING' ? await this.provider.queryFunding(tx.providerReference ?? tx.payazaReference, tx.method ?? 'bank_transfer') : await this.provider.queryPayout(tx.payazaReference);
+    const paid = 'amountNgn' in r && typeof r.amountNgn === 'number' ? r.amountNgn : undefined;
+    if (r.status === 'successful' && tx.kind === 'FUNDING' && paid !== undefined && Math.round(paid * 100) < tx.amountKobo + tx.feeKobo) {
+      this.log.warn(`funding ${tx.payazaReference}: Payaza reports ${paid}, expected ${(tx.amountKobo + tx.feeKobo) / 100}; not settling`);
+      return tx;
+    }
     if (r.status === 'pending') {
       if (tx.kind === 'FUNDING' && tx.method === 'card' && tx.createdAt.getTime() < Date.now() - CARD_CHECKOUT_TTL_MS) {
         await this.fail(tx, 'Card checkout abandoned');
@@ -245,9 +251,15 @@ export class PaymentsService {
     return this.prisma.transaction.findUnique({ where: { id: tx.id } });
   }
 
-  async reconcileByReference(reference: string) {
+  /** `checkoutReference`: Payaza's own id for a card checkout, from a signed webhook; it is what Payaza's status lookup knows. */
+  async reconcileByReference(reference: string, checkoutReference?: string) {
     const tx = await this.prisma.transaction.findUnique({ where: { payazaReference: reference } });
-    return tx ? this.reconcile(tx.id) : null;
+    if (!tx) return null;
+    if (checkoutReference && !tx.providerReference && tx.method === 'card' && (tx.status === 'pending' || tx.status === 'processing')) {
+      // unique: a checkout id already linked to another payment is ignored (the update fails, the link stays empty)
+      await this.prisma.transaction.updateMany({ where: { id: tx.id, providerReference: null }, data: { providerReference: checkoutReference } }).catch(() => undefined);
+    }
+    return this.reconcile(tx.id);
   }
 
   /** Every pending money movement older than `olderThanMs`. Run by the worker on a schedule. */
@@ -320,10 +332,15 @@ export class PaymentsService {
    * A forged or replayed webhook therefore cannot fund or pay anything.
    */
   async handleWebhook(rawBody: Buffer, signature: string | undefined, payload: any, replay = false) {
-    const reference = String(payload?.transaction_reference ?? payload?.data?.transaction_reference ?? '');
+    // Card checkouts carry Payaza's own id in `transaction_reference` and ours in `merchant_reference`.
+    const payazaRef = String(payload?.transaction_reference ?? payload?.data?.transaction_reference ?? '');
+    const reference = String(payload?.merchant_reference ?? payload?.data?.merchant_reference ?? '') || payazaRef;
     const status = String(payload?.transaction_status ?? payload?.status ?? '');
-    const eventId = `payaza:${reference}:${status}`;
-    const signatureOk = this.provider.verifyWebhook(rawBody, signature);
+    const eventId = `payaza:${payazaRef || reference}:${status}`;
+    // A replay has no signature to check; it inherits the one verified when the event first arrived.
+    const signatureOk = replay
+      ? Boolean((await this.prisma.webhookEvent.findUnique({ where: { eventId }, select: { signatureOk: true } }))?.signatureOk)
+      : this.provider.verifyWebhook(rawBody, signature);
 
     if (!replay) {
       try {
@@ -334,7 +351,8 @@ export class PaymentsService {
       }
     }
     try {
-      const tx = reference ? await this.reconcileByReference(reference) : null;
+      // Only a signed event may link Payaza's checkout id to our payment; the status still comes from Payaza itself.
+      const tx = reference ? await this.reconcileByReference(reference, signatureOk && payazaRef !== reference ? payazaRef : undefined) : null;
       await this.prisma.webhookEvent.update({ where: { eventId }, data: { processedAt: new Date(), error: tx ? null : 'Unknown reference' } });
       return { duplicate: false, transactionStatus: tx?.status ?? null };
     } catch (e) {

@@ -22,4 +22,9 @@ describe('PayazaProvider.queryFunding (card)', () => {
     reply(200, { data: { transaction_status: 'Completed' } });
     await expect(provider.queryFunding('R', 'card')).resolves.toMatchObject({ status: 'successful' });
   });
+
+  it('reports what was paid, as Payaza returns it for a checkout looked up by its own id', async () => {
+    reply(200, { response_code: 200, response_message: 'Transaction data found', response_content: { transaction_reference: 'P-C-1', transaction_amount: 210000.0, transaction_status: 'Completed' } });
+    await expect(provider.queryFunding('P-C-1', 'card')).resolves.toMatchObject({ status: 'successful', amountNgn: 210000 });
+  });
 });

@@ -77,7 +77,8 @@ export class PayazaProvider implements PaymentProvider {
       const r = await this.call('POST', '/card/card_charge/transaction_status', { service_payload: { transaction_reference: reference } }, true);
       const s = String(r?.data?.transaction_status ?? r?.response_content?.transaction_status ?? '');
       if (!s && r?.response_code === 400) throw new BadGatewayException(r.response_message ?? 'Payaza error 400');
-      return { status: mapCollection(s), raw: r, providerStatus: s };
+      const paid = Number(r?.response_content?.transaction_amount ?? r?.data?.transaction_amount);
+      return { status: mapCollection(s), raw: r, providerStatus: s, ...(Number.isFinite(paid) && { amountNgn: paid }) };
     }
     const r = await this.call('GET', `/merchant-collection/transfer_notification_controller/transaction-query?transaction_reference=${encodeURIComponent(reference)}`);
     const s = String(r?.data?.transaction_status ?? '');

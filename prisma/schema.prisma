@@ -630,6 +630,8 @@ model Transaction {
   status           TransactionStatus @default(pending)
   idempotencyKey   String            @unique
   payazaReference  String            @unique
+  /// Payaza's own id for a card checkout (its status lookup only knows this one), from the signed webhook.
+  providerReference String?          @unique
   method           String?
   instructions     Json?
   providerStatus   String?
