@@ -126,6 +126,7 @@ model User {
   payoutDestination PayoutDestination?
   refreshTokens     RefreshToken[]
   notifications     Notification[]
+  pushTokens        PushToken[]
   messages          Message[]
 }
 
@@ -693,4 +694,16 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([entity, entityId])
+}
+
+/// An Expo push token for one of the user's devices. A token belongs to whoever signed in on that device last.
+model PushToken {
+  token     String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

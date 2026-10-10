@@ -190,7 +190,17 @@ export class MatchingService {
     const other = conv.match.brandId === userId ? conv.match.creatorId : conv.match.brandId;
     this.notifications.emit(userId, 'message', message);
     this.notifications.emit(other, 'message', message);
+    void this.pushMessage(userId, other, conversationId, text);
     return message;
+  }
+
+  /** New chat message: a push to the other side, from the sender's name (not kept in the notifications inbox). */
+  private async pushMessage(senderId: string, to: string, conversationId: string, text: string) {
+    const [brand, creator] = await Promise.all([
+      this.prisma.brandProfile.findUnique({ where: { userId: senderId }, select: { businessName: true } }),
+      this.prisma.creatorProfile.findUnique({ where: { userId: senderId }, select: { displayName: true } }),
+    ]);
+    await this.notifications.push(to, { title: brand?.businessName ?? creator?.displayName ?? 'New message', body: text.slice(0, 180), linkTo: `/chat/${conversationId}` });
   }
 }
 
