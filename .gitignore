@@ -9,4 +9,14 @@ coverage
 .DS_Store
 .vscode/
 services/ml/generated/portraits/
-services/ml/generated/portrait-pool/
+# Keep generated working files local; publish the ten portrait assets and preview.
+services/ml/generated/portrait-pool/*
+!services/ml/generated/portrait-pool/source/
+!services/ml/generated/portrait-pool/optimized/
+!services/ml/generated/portrait-pool/contact-sheet.webp
+services/ml/generated/portrait-pool/source/*
+!services/ml/generated/portrait-pool/source/portrait-00[1-9].png
+!services/ml/generated/portrait-pool/source/portrait-010.png
+services/ml/generated/portrait-pool/optimized/*
+!services/ml/generated/portrait-pool/optimized/portrait-00[1-9].webp
+!services/ml/generated/portrait-pool/optimized/portrait-010.webp
