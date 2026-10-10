@@ -27,6 +27,10 @@
     "demo:import": "node --import tsx prisma/import-demo-v2.ts",
     "demo:seed-operational": "node --import tsx prisma/seed-demo-operational.ts",
     "demo:verify": "node --import tsx prisma/verify-demo-database.ts",
+    "ml:enrich": "node --import tsx prisma/enrich-existing-ml.ts",
+    "ml:enrich:verify": "node --import tsx prisma/verify-ml-enrichment.ts",
+    "data:consolidate": "node --import tsx prisma/consolidate-dataset.ts",
+    "data:consolidate:verify": "node --import tsx prisma/verify-consolidated-dataset.ts",
     "start:worker": "node dist/worker.js",
     "dev:worker": "nest start --watch --entryFile worker"
   },

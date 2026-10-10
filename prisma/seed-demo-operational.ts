@@ -36,8 +36,6 @@ const target = assertApprovedDemoTarget({
   confirmedFingerprint: arg('--confirm-fingerprint'),
   importEnabled: process.env.DEMO_DATA_IMPORT_ENABLED,
   nodeEnvironment: process.env.NODE_ENV,
-  railwayReplacementApproved: process.env.DEMO_RAILWAY_REPLACEMENT_APPROVED,
-  replacementConfirmation: arg('--confirm-replacement'),
   write,
 });
 
