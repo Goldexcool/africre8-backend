@@ -155,7 +155,7 @@ export function loadAndValidateDataset(root: string): DemoDataset {
   const imageById = new Map(images.map((row) => [row.id, row]));
   for (const creator of creators) {
     const image = imageById.get(creator.image_asset_id);
-    assert(image?.creator_id === creator.id, `creator ${creator.id} has an invalid image reference`);
+    assert(image && image.creator_id === creator.id, `creator ${creator.id} has an invalid image reference`);
     assert(image.synthetic === true && image.exclude_from_ml_features === true, `creator ${creator.id} image provenance is invalid`);
   }
   opportunities.forEach(validateOpportunity);

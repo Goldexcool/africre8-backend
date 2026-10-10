@@ -1,6 +1,6 @@
 process.env.PAYMENT_PROVIDER = 'mock';
 
-import { bootApp, cleanup, makeMatch, makeUser, sampleTerms } from './helpers.js';
+import { bootApp, cleanup, makeAdmin, makeMatch, sampleTerms } from './helpers.js';
 import { PaymentsService } from '../src/payments/payments.service.js';
 
 /** The money-back half of escrow: cancel, refund account, dispute refund, overdue refund. Mock provider. */
@@ -79,10 +79,7 @@ describe('Escrow refunds (e2e)', () => {
     const { brand, creator, id } = await campaign(true);
     await http.put('/profiles/refund-account').set(brand.auth).send(bank()).expect(200);
     await http.post(`/campaigns/${id}/dispute`).set(creator.auth).send({ reason: 'Brand went silent after funding' }).expect(201);
-    const adminUser = await makeUser(http, 'CREATOR');
-    const { email } = await ctx.prisma.user.update({ where: { id: adminUser.id }, data: { role: 'ADMIN' } });
-    const login = await http.post('/auth/login').send({ email, password: 'password123' }).expect(200);
-    const aauth = { Authorization: `Bearer ${login.body.accessToken}` };
+    const aauth = await makeAdmin(http, ctx.prisma);
     const d = (await http.get('/admin/disputes').set(aauth).expect(200)).body.find((x: { campaignId: string }) => x.campaignId === id);
     await http.post(`/admin/disputes/${d.id}/resolve`).set(aauth).send({ outcome: 'refund', resolution: 'Brand is refunded in full' }).expect(201);
     await settle(id);

@@ -38,6 +38,14 @@ export async function makeUser(http: ReturnType<typeof request>, role: 'BRAND' |
   return { id: reg.body.user.id as string, auth };
 }
 
+/** A fresh admin (a test user promoted in the DB), so tests never depend on the seed having run. */
+export async function makeAdmin(http: ReturnType<typeof request>, prisma: PrismaService) {
+  const u = await makeUser(http, 'CREATOR');
+  const { email } = await prisma.user.update({ where: { id: u.id }, data: { role: 'ADMIN' } });
+  const login = await http.post('/auth/login').send({ email, password: 'password123' }).expect(200);
+  return { Authorization: `Bearer ${login.body.accessToken}` };
+}
+
 /** Removes everything created by test users so the shared DB stays clean. */
 export async function cleanup(prisma: PrismaService) {
   const users = await prisma.user.findMany({ where: { email: { endsWith: TEST_DOMAIN } }, select: { id: true } });

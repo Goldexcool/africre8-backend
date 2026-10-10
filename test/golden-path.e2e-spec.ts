@@ -2,7 +2,7 @@ process.env.PAYMENT_PROVIDER = 'mock';
 
 import { PaymentsService } from '../src/payments/payments.service.js';
 import { VerificationService, verdictFor } from '../src/verification/verification.service.js';
-import { bootApp, cleanup, makeMatch, sampleTerms } from './helpers.js';
+import { bootApp, cleanup, makeAdmin, makeMatch, sampleTerms } from './helpers.js';
 
 /** PRD "Acceptance Criteria (End-to-End Flow)", driven through the HTTP API with the mock provider. */
 describe('Golden path (e2e)', () => {
@@ -97,8 +97,7 @@ describe('Golden path (e2e)', () => {
     expect(c.body.status).toBe('disputed');
     await http.post(`/campaigns/${id}/approve`).set(brand.auth).expect(409); // paused
 
-    const admin = await http.post('/auth/login').send({ email: 'admin.dev@africre8.app', password: process.env.SEED_ADMIN_PASSWORD ?? 'x' }).expect(200);
-    const aauth = { Authorization: `Bearer ${admin.body.accessToken}` };
+    const aauth = await makeAdmin(http, ctx.prisma);
     await http.get('/admin/overview').set(brand.auth).expect(403);
     const disputes = await http.get('/admin/disputes').set(aauth).expect(200);
     const d = disputes.body.find((x: { campaignId: string }) => x.campaignId === id);
