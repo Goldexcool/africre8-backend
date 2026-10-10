@@ -97,7 +97,7 @@ try {
       const url = new URL(row.avatarUrl);
       const fallback = url.pathname.startsWith('/demo-media/creators/') && url.pathname.endsWith('.svg');
       const portrait = url.pathname.startsWith('/media/africre8/demo/creators/') && url.pathname.endsWith('.webp');
-      const pool = /^\/media\/africre8\/demo\/portrait-pool\/portrait-0(?:[0-4][0-9]|50)\.webp$/.test(url.pathname);
+      const pool = /^\/media\/africre8\/demo\/portrait-pool\/portrait-0(?:0[1-9]|10)\.webp$/.test(url.pathname);
       return !['http:', 'https:'].includes(url.protocol) || (!fallback && !portrait && !pool);
     } catch {
       return true;

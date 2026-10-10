@@ -33,7 +33,7 @@ Demo-v2 contains 500 image metadata records and every creator references one, bu
 
 `PUBLIC_URL` must be the externally reachable NestJS origin before a write. The verifier requires every introduced synthetic creator to have an HTTP(S) URL using the demo-media route. It does not claim that production or remote R2 URLs are reachable; remote object validation requires a separately authorized storage audit.
 
-The shared portrait workflow is documented in `docs/synthetic-portraits.md`. Fifty validated local portraits use stable R2 keys under `africre8/demo/portrait-pool/` and are deterministically assigned to 500 creators, ten profiles per portrait. Database activation writes the ML profile's demo display override and preserves the stored production avatar and portfolio. Until upload and activation succeed, the SVG remains the safe fallback.
+The shared portrait workflow is documented in `docs/synthetic-portraits.md`. Ten validated local portraits use stable R2 keys under `africre8/demo/portrait-pool/` and are deterministically assigned to 500 creators, fifty profiles per portrait. Database activation writes the ML profile's demo display override and preserves the stored production avatar and portfolio. Until upload and activation succeed, the SVG remains the safe fallback.
 
 ## Approved scope
 

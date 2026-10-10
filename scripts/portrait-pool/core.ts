@@ -3,8 +3,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import sharp from 'sharp';
 
-export const POOL_SIZE = 50;
-export const ASSIGNMENTS_PER_PORTRAIT = 10;
+export const POOL_SIZE = 10;
+export const ASSIGNMENTS_PER_PORTRAIT = 50;
 export const POOL_NAMESPACE = 'africre8/demo/portrait-pool';
 export const poolId = (index: number) => `portrait-${String(index + 1).padStart(3, '0')}`;
 export const poolStorageKey = (id: string) => `${POOL_NAMESPACE}/${id}.webp`;

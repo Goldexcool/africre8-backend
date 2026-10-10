@@ -28,11 +28,11 @@ async function verify() {
     else hashes.set(result.hash, slot.id);
     bytes += result.bytes;
   }
-  return { expectedAssets: 50, validUniqueAssets: hashes.size, assignments: Object.keys(plan.assignments).length, minAssignments: Math.min(...plan.slots.map((slot) => slot.creatorIds.length)), maxAssignments: Math.max(...plan.slots.map((slot) => slot.creatorIds.length)), failures, totalBytes: bytes };
+  return { expectedAssets: 10, validUniqueAssets: hashes.size, assignments: Object.keys(plan.assignments).length, minAssignments: Math.min(...plan.slots.map((slot) => slot.creatorIds.length)), maxAssignments: Math.max(...plan.slots.map((slot) => slot.creatorIds.length)), failures, totalBytes: bytes };
 }
 
 if (mode === 'plan') {
-  console.log(JSON.stringify({ sourceDirectory: sourceDir, naming: 'portrait-001.(webp|png|jpg|jpeg) through portrait-050', suppliedSources: manifest.slots.filter((slot) => slot.sourcePath).length, expectedSources: 50, assignments: 500, assignmentsPerPortrait: 10, slotSummary: manifest.slots.map(({ id, categories, representativeNiches }) => ({ id, categories, representativeNiches })) }, null, 2));
+  console.log(JSON.stringify({ sourceDirectory: sourceDir, naming: 'portrait-001.(webp|png|jpg|jpeg) through portrait-010', suppliedSources: manifest.slots.filter((slot) => slot.sourcePath).length, expectedSources: 10, assignments: 500, assignmentsPerPortrait: 50, slotSummary: manifest.slots.map(({ id, categories, representativeNiches }) => ({ id, categories, representativeNiches })) }, null, 2));
 } else if (mode === 'optimize') {
   const missing = manifest.slots.filter((slot) => !slot.sourcePath);
   if (missing.length) throw new Error(`missing ${missing.length} source assets; first missing: ${missing[0].id}`);
@@ -43,17 +43,17 @@ if (mode === 'plan') {
 } else if (mode === 'verify') {
   const report = await verify();
   console.log(JSON.stringify({ ...report, failures: report.failures.slice(0, 20) }, null, 2));
-  if (report.validUniqueAssets !== 50 || report.failures.length) process.exitCode = 2;
+  if (report.validUniqueAssets !== 10 || report.failures.length) process.exitCode = 2;
 } else if (mode === 'upload') {
-  if (process.env.PORTRAIT_POOL_R2_UPLOAD_ENABLED !== 'true' || arg('--confirm-upload') !== 'UPLOAD_VALIDATED_50_PORTRAITS') throw new Error('portrait-pool upload is disabled');
+  if (process.env.PORTRAIT_POOL_R2_UPLOAD_ENABLED !== 'true' || arg('--confirm-upload') !== 'UPLOAD_VALIDATED_10_PORTRAITS') throw new Error('portrait-pool upload is disabled');
   for (const key of ['R2_ENDPOINT', 'R2_BUCKET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY']) if (!process.env[key]) throw new Error(`${key} is required`);
   const report = await verify();
-  if (report.validUniqueAssets !== 50 || report.failures.length) throw new Error('upload requires 50 valid unique portraits');
+  if (report.validUniqueAssets !== 10 || report.failures.length) throw new Error('upload requires 10 valid unique portraits');
   const client = new S3Client({ region: 'auto', endpoint: process.env.R2_ENDPOINT, credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID!, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY! } });
-  for (const slot of manifest.slots) await client.send(new PutObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: slot.storageKey, Body: readFileSync(slot.outputPath), ContentType: 'image/webp', CacheControl: 'public, max-age=31536000, immutable', Metadata: { synthetic: 'true', pool: 'africre8-50-v1' } }));
-  console.log(JSON.stringify({ uploaded: 50, namespace: plan.namespace }, null, 2));
+  for (const slot of manifest.slots) await client.send(new PutObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: slot.storageKey, Body: readFileSync(slot.outputPath), ContentType: 'image/webp', CacheControl: 'public, max-age=31536000, immutable', Metadata: { synthetic: 'true', pool: 'africre8-10-v1' } }));
+  console.log(JSON.stringify({ uploaded: 10, namespace: plan.namespace }, null, 2));
 } else if (mode === 'apply-db') {
-  if (process.env.PORTRAIT_POOL_DATABASE_APPLY_ENABLED !== 'true' || arg('--confirm-apply') !== 'APPLY_50_PORTRAIT_POOL') throw new Error('portrait-pool database apply is disabled');
+  if (process.env.PORTRAIT_POOL_DATABASE_APPLY_ENABLED !== 'true' || arg('--confirm-apply') !== 'APPLY_10_PORTRAIT_POOL') throw new Error('portrait-pool database apply is disabled');
   if (!process.env.DATABASE_URL || !process.env.PUBLIC_URL) throw new Error('DATABASE_URL and PUBLIC_URL are required');
   const identity = consolidationDatabaseIdentity(process.env.DATABASE_URL);
   if (arg('--confirm-target-fingerprint') !== identity.fingerprint) throw new Error('target fingerprint mismatch');
@@ -71,7 +71,7 @@ if (mode === 'plan') {
     if (overridePath) {
       const overrides = JSON.parse(readFileSync(resolve(overridePath), 'utf8')) as Record<string, string>;
       for (const [creatorId, portraitId] of Object.entries(overrides)) {
-        if (!/^portrait-0(?:[0-4][0-9]|50)$/.test(portraitId)) throw new Error(`invalid pool ID for production override: ${portraitId}`);
+        if (!/^portrait-0(?:0[1-9]|10)$/.test(portraitId)) throw new Error(`invalid pool ID for production override: ${portraitId}`);
         const result = await prisma.creatorMlProfile.updateMany({ where: { creatorId, synthetic: false }, data: { displayImageOverrideUrl: poolPublicUrl(process.env.PUBLIC_URL, portraitId) } });
         productionOverrides += result.count;
       }
