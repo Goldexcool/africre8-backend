@@ -3,7 +3,7 @@ import { defineRailway, project, redis, service, volume } from "railway/iac";
 const REGION = "us-east4-eqdc4a";
 // Replaces railway.json. Code is uploaded with `railway up` (ml from services/ml with --path-as-root), so no repo source.
 const docker = { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" } as const;
-const restart = { restartPolicyType: "ON_FAILURE", restartPolicyMaxRetries: 5 } as const;
+const restart = { restartPolicyMaxRetries: 5 } as const; // restart policy ON_FAILURE is Railway's default
 
 export default defineRailway(() => {
   const Redis = redis("Redis", { region: REGION });
