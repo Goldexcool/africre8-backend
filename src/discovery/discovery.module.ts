@@ -68,7 +68,7 @@ export class DiscoveryService {
         ...(f.minCredibility !== undefined && { credibilityScore: { gte: f.minCredibility } }),
         ...(Object.keys(socialFilter).length && { socials: { some: socialFilter } }),
       },
-      include: { socials: true },
+      include: { socials: true, mlProfile: { select: { displayImageOverrideUrl: true } } },
       orderBy: [{ credibilityScore: 'desc' }, { userId: 'asc' }],
       take: f.limit,
     });

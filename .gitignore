@@ -8,3 +8,5 @@ coverage
 *.log
 .DS_Store
 .vscode/
+services/ml/generated/portraits/
+services/ml/generated/portrait-pool/

@@ -10,7 +10,7 @@ Use process-scoped environment variables so existing environment files remain un
 $env:DATABASE_URL = 'postgresql://<demo-user>:<demo-password>@127.0.0.1:55432/<demo-database>'
 $env:ML_SERVICE_URL = 'http://127.0.0.1:8001'
 $env:ML_REQUEST_TIMEOUT_MS = '20000'
-$env:ML_SEMANTIC_TIMEOUT_MS = '60000'
+$env:ML_SEMANTIC_TIMEOUT_MS = '120000'
 $env:JWT_ACCESS_SECRET = '<local-demo-jwt-secret-at-least-32-characters>'
 $env:REDIS_URL = 'redis://127.0.0.1:6379'
 $env:PAYMENT_PROVIDER = 'mock'

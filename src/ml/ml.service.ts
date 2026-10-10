@@ -176,7 +176,7 @@ export class MlService {
     return {
       id: row.creatorId,
       displayName: row.creator.displayName,
-      avatarUrl: row.creator.avatarUrl,
+      avatarUrl: row.displayImageOverrideUrl ?? row.creator.avatarUrl,
       bio: row.creator.bio,
       location: row.creator.location,
       category: row.creator.category,

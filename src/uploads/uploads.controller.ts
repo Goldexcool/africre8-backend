@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpException, HttpStatus, NotFoundException, Post, Req, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpException, HttpStatus, NotFoundException, Param, Post, Req, Res, ServiceUnavailableException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
 import type { Request, Response } from 'express';
@@ -7,6 +7,7 @@ import { CurrentUser, Public, type AuthUser } from '../common/auth.decorators.js
 import { ErrorCode } from '../common/errors.js';
 import { ZodPipe } from '../common/zod.pipe.js';
 import { KEY_PREFIX, ObjectStoreService, SIGN_TTL_SECONDS } from './object-store.service.js';
+import { syntheticAvatarSvg, validSyntheticCreatorId } from './demo-avatar.js';
 
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
@@ -28,6 +29,15 @@ const recent = new Map<string, number[]>();
 @Controller()
 export class UploadsController {
   constructor(private readonly store: ObjectStoreService) {}
+
+  /** Generated placeholder for explicitly synthetic creator identities; no object-store access required. */
+  @Public()
+  @Get('demo-media/creators/:sourceId.svg')
+  demoCreatorAvatar(@Param('sourceId') sourceId: string, @Res() res: Response) {
+    if (!validSyntheticCreatorId(sourceId)) throw new NotFoundException('Not found');
+    res.set({ 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'public, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'" });
+    res.send(syntheticAvatarSvg(sourceId));
+  }
 
   /** The app uploads straight to storage with the returned URL (PUT, same headers), then saves `publicUrl` on its profile. */
   @Post('uploads/sign')

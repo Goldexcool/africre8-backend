@@ -226,8 +226,11 @@ model CreatorMlProfile {
   productionCapabilities String[]
   typicalLeadTimeDays    Int?
   imageAssetId           String?
+  displayImageOverrideUrl String?
   sourceAvailability     String?
   commercialExperience   Json?
+  featureProvenance      Json?
+  dataQuality            Json?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
@@ -406,6 +409,8 @@ model OpportunityMlProfile {
   timeline                  Json?
   brandSnapshot             Json?
   heldOut                   Boolean     @default(false)
+  featureProvenance         Json?
+  dataQuality               Json?
   createdAt                 DateTime    @default(now())
   updatedAt                 DateTime    @updatedAt
 
@@ -464,6 +469,50 @@ model DemoDatasetImport {
 
   @@unique([namespace, manifestSha256, databaseFingerprint])
   @@index([namespace, status])
+}
+
+/// Auditable execution record for a reviewed production/synthetic consolidation.
+model DatasetConsolidationRun {
+  id                        String   @id @default(uuid())
+  namespace                 String
+  planHash                  String   @unique
+  productionFingerprint     String
+  syntheticFingerprint      String
+  targetDatabaseFingerprint String
+  scope                     Json
+  counts                    Json
+  conflicts                 Json
+  backupReference           String
+  status                    String
+  startedAt                 DateTime
+  completedAt               DateTime?
+  createdAt                 DateTime @default(now())
+
+  provenance DatasetRecordProvenance[]
+
+  @@index([namespace, status])
+}
+
+/// Provenance for operational and explicitly approved synthetic records.
+/// entityType/entityId form a controlled polymorphic reference verified by the
+/// consolidation validator; no operational table depends on this metadata.
+model DatasetRecordProvenance {
+  id                 String                  @id @default(uuid())
+  namespace          String
+  entityType         String
+  entityId           String
+  sourceKind         String
+  sourceId           String
+  sourceRecordHash   String
+  synthetic          Boolean
+  consolidationRunId String
+  consolidationRun   DatasetConsolidationRun @relation(fields: [consolidationRunId], references: [id], onDelete: Restrict)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@unique([namespace, entityType, entityId])
+  @@unique([namespace, entityType, sourceId])
+  @@index([sourceKind, synthetic])
 }
 
 /// An invitation (brand → creator) or application (creator → brand), optionally for one brief.
